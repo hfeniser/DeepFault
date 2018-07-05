@@ -9,11 +9,10 @@ import numpy as np
 import argparse
 
 parser = argparse.ArgumentParser(description='An MNIST Network\'s Neuron Analysis')
-parser.add_argument("predicted_class", type=int, help='Label of the predicted class by NN.')
+parser.add_argument("error_class", type=int, help='Label of the predicted class by NN.')
 parser.add_argument('-tc', "--true_class", type=int, help='Label of the true (expected) class.')
 
 args = parser.parse_args()
-
 
 #Provide a seed for reproducability
 np.random.seed(7)
@@ -49,14 +48,18 @@ error_class_to_input= []
 
 predictions = model.predict(X_test)
 
-print args.predicted_class
-cnt = 1
+idx = 1
 for pred, crrct in zip(predictions, Y_test):
     predicted_class = np.unravel_index(pred.argmax(), pred.shape)[0]
     true_class = np.unravel_index(crrct.argmax(), crrct.shape)[0]
 
-    if true_class  == args.predicted_class and true_class == predicted_class:
-        error_class_to_input.append(cnt)
+    if args.true_class == None:
+        condition = predicted_class == args.error_class and predicted_class != true_class
+    else:
+        condition = predicted_class == args.error_class and true_class == args.true_class
+
+    if condition:
+        error_class_to_input.append(idx)
 #    elif predicted_class == 2 and predicted_class != true_class:
 #        error_class_to_input[2].append(cnt)
 #    elif predicted_class == 3 and predicted_class != true_class:
@@ -67,7 +70,7 @@ for pred, crrct in zip(predictions, Y_test):
 #        error_class_to_input[5].append(cnt)
 #    elif len(error_class_to_input[6]) < 30 and predicted_class == 1 and true_class == 1:
 #        error_class_to_input[6].append(cnt)
-    cnt += 1
+    idx += 1
 
 print len(error_class_to_input)
 
