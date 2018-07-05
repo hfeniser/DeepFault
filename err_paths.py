@@ -58,18 +58,13 @@ for pred, crrct in zip(predictions, Y_test):
     else:
         condition = predicted_class == args.error_class and true_class == args.true_class
 
+#    This condition gives us the indices of the inputs that are correctly
+#    clasified and their label are as specified by the user.
+#    condition = predicted_class == args.error_class and predicted_class == true_class
+
     if condition:
         error_class_to_input.append(idx)
-#    elif predicted_class == 2 and predicted_class != true_class:
-#        error_class_to_input[2].append(cnt)
-#    elif predicted_class == 3 and predicted_class != true_class:
-#        error_class_to_input[3].append(cnt)
-#    elif predicted_class == 4 and predicted_class != true_class:
-#        error_class_to_input[4].append(cnt)
-#    elif predicted_class == 5 and predicted_class != true_class:
-#        error_class_to_input[5].append(cnt)
-#    elif len(error_class_to_input[6]) < 30 and predicted_class == 1 and true_class == 1:
-#        error_class_to_input[6].append(cnt)
+
     idx += 1
 
 print len(error_class_to_input)
