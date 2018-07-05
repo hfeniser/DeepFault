@@ -6,6 +6,14 @@ from keras.datasets import mnist
 from keras import backend as K
 from collections import defaultdict
 import numpy as np
+import argparse
+
+parser = argparse.ArgumentParser(description='An MNIST Network\'s Neuron Analysis')
+parser.add_argument("predicted_class", type=int, help='Label of the predicted class by NN.')
+parser.add_argument('-tc', "--true_class", type=int, help='Label of the true (expected) class.')
+
+args = parser.parse_args()
+
 
 #Provide a seed for reproducability
 np.random.seed(7)
@@ -37,35 +45,36 @@ model.compile(loss='categorical_crossentropy',
               metrics=['accuracy'])
 
 
-error_class_to_input= defaultdict(list)
+error_class_to_input= []
 
 predictions = model.predict(X_test)
 
+print args.predicted_class
 cnt = 1
 for pred, crrct in zip(predictions, Y_test):
-    predicted_class = np.unravel_index(pred.argmax(), pred.shape)[0] #list(pred).index(max(pred))
-    true_class = np.unravel_index(crrct.argmax(), crrct.shape)[0] #crrct.index(max(crrct))
+    predicted_class = np.unravel_index(pred.argmax(), pred.shape)[0]
+    true_class = np.unravel_index(crrct.argmax(), crrct.shape)[0]
 
-    if true_class  == 1 and true_class == predicted_class:
-        error_class_to_input[1].append(cnt)
-    elif predicted_class == 2 and predicted_class != true_class:
-        error_class_to_input[2].append(cnt)
-    elif predicted_class == 3 and predicted_class != true_class:
-        error_class_to_input[3].append(cnt)
-    elif predicted_class == 4 and predicted_class != true_class:
-        error_class_to_input[4].append(cnt)
-    elif predicted_class == 5 and predicted_class != true_class:
-        error_class_to_input[5].append(cnt)
-    elif len(error_class_to_input[6]) < 30 and predicted_class == 1 and true_class == 1:
-        error_class_to_input[6].append(cnt)
+    if true_class  == args.predicted_class and true_class == predicted_class:
+        error_class_to_input.append(cnt)
+#    elif predicted_class == 2 and predicted_class != true_class:
+#        error_class_to_input[2].append(cnt)
+#    elif predicted_class == 3 and predicted_class != true_class:
+#        error_class_to_input[3].append(cnt)
+#    elif predicted_class == 4 and predicted_class != true_class:
+#        error_class_to_input[4].append(cnt)
+#    elif predicted_class == 5 and predicted_class != true_class:
+#        error_class_to_input[5].append(cnt)
+#    elif len(error_class_to_input[6]) < 30 and predicted_class == 1 and true_class == 1:
+#        error_class_to_input[6].append(cnt)
     cnt += 1
 
-print len(error_class_to_input[1])
+print len(error_class_to_input)
 
-class_specific_test_set = np.ndarray(shape=(len(error_class_to_input[1]),1,28,28))
+class_specific_test_set = np.ndarray(shape=(len(error_class_to_input),1,28,28))
 
 cnt = 0
-for test_input in error_class_to_input[1]:
+for test_input in error_class_to_input:
     class_specific_test_set[cnt] = test_input
     cnt += 1
 
