@@ -1,7 +1,7 @@
 from keras.models import Sequential, model_from_json
 from keras import backend as K
 from collections import defaultdict
-from load_mnist import data_mnist
+from utils import load_data
 import numpy as np
 import argparse
 import tensorflow as tf
@@ -34,7 +34,7 @@ model.compile(loss='categorical_crossentropy',
               metrics=['accuracy'])
 
 
-X_train, y_train, X_test, y_test = data_mnist()
+X_train, y_train, X_test, y_test = load_data()
 
 predictions = model.predict(X_test)
 idx = 0

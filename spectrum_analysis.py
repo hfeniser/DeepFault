@@ -5,8 +5,7 @@ from keras import backend as K
 from collections import defaultdict
 import numpy as np
 import argparse
-from load_mnist import data_mnist
-from load_model import load_model
+from utils import load_model, load_data, get_layer_outs
 
 parser = argparse.ArgumentParser(description='An MNIST Network\'s Neuron Analysis')
 parser.add_argument("-ev", "--error_class", type=int, help='Label of the predicted class by NN.')
@@ -17,17 +16,7 @@ args = parser.parse_args()
 #Provide a seed for reproducability
 np.random.seed(7)
 
-def get_layer_outs(model, class_specific_test_set):
-    inp = model.input                                           # input placeholder
-    outputs = [layer.output for layer in model.layers]          # all layer outputs
-    functors = [K.function([inp]+ [K.learning_phase()], [out]) for out in outputs]  # evaluation functions
-    # Testing
-    layer_outs = [func([class_specific_test_set, 1.]) for func in functors]
-
-    return layer_outs
-
-
-X_train, Y_train, X_test, Y_test = data_mnist()
+X_train, Y_train, X_test, Y_test = load_data()
 model = load_model()
 
 error_class_to_input= []

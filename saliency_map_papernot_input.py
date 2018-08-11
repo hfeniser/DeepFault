@@ -4,8 +4,7 @@ from collections import defaultdict
 import numpy as np
 import argparse
 import tensorflow as tf
-from load_mnist import data_mnist
-from load_model import load_model
+from utils import load_model, load_data
 
 class JacobianSaliency(object):
 
@@ -55,7 +54,7 @@ class JacobianSaliency(object):
 
         return saliency_map
 
-X_train, y_train, X_test, y_test = data_mnist()
+X_train, y_train, X_test, y_test = load_data()
 model = load_model()
 
 predictions = model.predict(X_test)

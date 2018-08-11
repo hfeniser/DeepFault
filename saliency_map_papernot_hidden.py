@@ -4,15 +4,7 @@ from collections import defaultdict
 import numpy as np
 import argparse
 import tensorflow as tf
-from load_mnist import data_mnist
-from load_model import load_model
-
-def layer_outs(model, test_inputs):
-    inp = model.input                                           # input placeholder
-    outputs = [layer.output for layer in model.layers]          # all layer outputs
-    functors = [K.function([inp]+ [K.learning_phase()], [out]) for out in outputs]  # evaluation functions
-    layer_outs = [func([test_inputs, 1.]) for func in functors]
-    return layer_outs
+from utils import load_model, load_data, get_layer_outs
 
 class JacobianSaliency(object):
 
@@ -58,7 +50,7 @@ class JacobianSaliency(object):
 
         return saliency_map
 
-X_train, y_train, X_test, y_test = data_mnist()
+X_train, y_train, X_test, y_test = load_data()
 model = load_model()
 
 predictions = model.predict(X_test)
@@ -72,7 +64,7 @@ for pred, crrct in zip(predictions, y_test):
         break
     idx += 1
 
-tst = layer_outs(model,[X_test[idx]])
+tst = get_layer_outs(model,[X_test[idx]])
 tst = tst[3][0][0]
 tst = np.expand_dims(tst, axis=0)
 
