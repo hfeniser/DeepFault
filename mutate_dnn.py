@@ -1,11 +1,11 @@
 from keras.models import Sequential, model_from_json
 from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.layers import Convolution2D, MaxPooling2D
-from keras.utils import np_utils
-from keras.datasets import mnist
 from keras import backend as K
 from collections import defaultdict
 from random import shuffle
+from load_mnist import data_mnist
+from load_model import load_model
 import numpy as np
 import argparse
 
@@ -30,21 +30,7 @@ def eval_model(model, filtered_ind=[], call='before'):
     #Provide a seed for reproducability
     np.random.seed(7)
 
-    #Load data
-    (X_train, y_train), (X_test, y_test) = mnist.load_data()
-
-    #Preprocess dataset
-    X_train = X_train.reshape(X_train.shape[0], 1, 28, 28)
-    X_test = X_test.reshape(X_test.shape[0], 1, 28, 28)
-
-    X_train = X_train.astype('float32')
-    X_test = X_test.astype('float32')
-    X_train /= 255
-    X_test /= 255
-
-    Y_train = np_utils.to_categorical(y_train, 10)
-    Y_test = np_utils.to_categorical(y_test, 10)
-
+    X_train, Y_train, X_test, Y_test = data_mnist()
     predictions = model.predict(X_test)
 
     #Indices of inputs that will be filtered.
@@ -199,16 +185,18 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    json_file = open(args.model+'.json', 'r')
-    loaded_model_json = json_file.read()
-    json_file.close()
-    model = model_from_json(loaded_model_json)
-    # load weights into new model
-    model.load_weights(args.model + ".h5")
+    model = load_model()
 
-    model.compile(loss='categorical_crossentropy',
-               optimizer='adam',
-               metrics=['accuracy'])
+#    json_file = open(args.model+'.json', 'r')
+#    loaded_model_json = json_file.read()
+#    json_file.close()
+#    model = model_from_json(loaded_model_json)
+    # load weights into new model
+#    model.load_weights(args.model + ".h5")
+
+#    model.compile(loss='categorical_crossentropy',
+#               optimizer='adam',
+#               metrics=['accuracy'])
 
     mutation_schema(model, args.mutation, (args.layer, args.neuron),
                     (args.layer2, args.neuron2))

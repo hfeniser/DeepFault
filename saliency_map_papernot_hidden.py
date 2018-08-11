@@ -1,39 +1,11 @@
-
-from keras.models import Sequential, model_from_json
-from keras.datasets import mnist
-from keras.utils import np_utils
+from keras.models import Sequential
 from keras import backend as K
 from collections import defaultdict
 import numpy as np
 import argparse
 import tensorflow as tf
-
-def data_mnist(one_hot=True):
-    """
-    Preprocess MNIST dataset
-    """
-    # the data, shuffled and split between train and test sets
-    (X_train, y_train), (X_test, y_test) = mnist.load_data()
-
-    X_train = X_train.reshape(X_train.shape[0], 1, 28, 28)
-    X_test = X_test.reshape(X_test.shape[0], 1, 28, 28)
-
-    X_train = X_train.astype('float32')
-    X_test = X_test.astype('float32')
-    X_train /= 255
-    X_test /= 255
-    print('X_train shape:', X_train.shape)
-    print(X_train.shape[0], 'train samples')
-    print(X_test.shape[0], 'test samples')
-
-    print "Loaded MNIST test data."
-
-    if one_hot:
-        # convert class vectors to binary class matrices
-        y_train = np_utils.to_categorical(y_train, 10).astype(np.float32)
-        y_test = np_utils.to_categorical(y_test, 10).astype(np.float32)
-
-    return X_train, y_train, X_test, y_test
+from load_mnist import data_mnist
+from load_model import load_model
 
 def layer_outs(model, test_inputs):
     inp = model.input                                           # input placeholder
@@ -85,20 +57,6 @@ class JacobianSaliency(object):
                         saliency_map[i][j] = abs(target_label_effect) * other_label_effect
 
         return saliency_map
-
-def load_model():
-    json_file = open('simple_mnist_fnn.json', 'r')
-    loaded_model_json = json_file.read()
-    json_file.close()
-    model = model_from_json(loaded_model_json)
-    # load weights into model
-    model.load_weights("simple_mnist_fnn.h5")
-
-    model.compile(loss='categorical_crossentropy',
-              optimizer='adam',
-              metrics=['accuracy'])
-
-    return model
 
 X_train, y_train, X_test, y_test = data_mnist()
 model = load_model()

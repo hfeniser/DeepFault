@@ -1,35 +1,10 @@
-
 from keras.models import Sequential, model_from_json
-from keras.datasets import mnist
-from keras.utils import np_utils
 from keras import backend as K
 from collections import defaultdict
+from load_mnist import data_mnist
 import numpy as np
 import argparse
 import tensorflow as tf
-
-def data_mnist(one_hot=True):
-    """
-    Preprocess MNIST dataset
-    """
-    # the data, shuffled and split between train and test sets
-    (X_train, y_train), (X_test, y_test) = mnist.load_data()
-
-    X_train = X_train.reshape(X_train.shape[0], 1, 28, 28)
-    X_test = X_test.reshape(X_test.shape[0], 1, 28, 28)
-
-    X_train = X_train.astype('float32')
-    X_test = X_test.astype('float32')
-    X_train /= 255
-    X_test /= 255
-
-    if one_hot:
-        # convert class vectors to binary class matrices
-        y_train = np_utils.to_categorical(y_train, 10).astype(np.float32)
-        y_test = np_utils.to_categorical(y_test, 10).astype(np.float32)
-
-    return X_train, y_train, X_test, y_test
-
 
 class GradientSaliency(object):
 
