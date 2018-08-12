@@ -17,7 +17,7 @@ args = parser.parse_args()
 np.random.seed(7)
 
 X_train, Y_train, X_test, Y_test = load_data()
-model = load_model()
+model = load_model('simple_mnist_fnn')
 
 error_class_to_input= []
 predictions = model.predict(X_test)
@@ -29,10 +29,10 @@ if args.metric == 'intersection':
         true_class = np.unravel_index(crrct.argmax(), crrct.shape)[0]
 
         if args.true_class == None:
-            #if user does not specify the true class we consider all wrong predictions of a "given error class"
+            #if user does not specify the true class (it is optional),  we consider all predictions that are equal to "given error class" and not correct
             condition = predicted_class == args.error_class and predicted_class != true_class
         else:
-            #if user specifies a true class we consider "given true class" predictions of a "given error class"
+            #if user specifies a true class we consider predictions that are equal to "given error class" and expected to be "given true class"
             condition = predicted_class == args.error_class and true_class == args.true_class
 
         #This condition gives us the indices of the inputs that are correctly
@@ -86,7 +86,6 @@ else:
         num_us.append(np.zeros(len(l_out[0][0])))
         scores.append(np.zeros(len(l_out[0][0])))
 
-    print len(num_uf[0])
     layer_idx = 0
     for l_out in layer_outs[1:]:
         all_neuron_idx = list(range(len(l_out[0][0])))

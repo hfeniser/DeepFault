@@ -1,6 +1,7 @@
 from keras.datasets import mnist
 from keras.utils import np_utils
 from keras.models import model_from_json
+from keras import backend as K
 
 def load_data(one_hot=True):
     #Load data
@@ -22,13 +23,13 @@ def load_data(one_hot=True):
     return X_train, Y_train, X_test, Y_test
 
 
-def load_model():
-    json_file = open('simple_mnist_fnn.json', 'r')
+def load_model(model_name):
+    json_file = open(model_name + '.json', 'r')
     loaded_model_json = json_file.read()
     json_file.close()
     model = model_from_json(loaded_model_json)
     # load weights into model
-    model.load_weights("simple_mnist_fnn.h5")
+    model.load_weights(model_name + '.h5')
 
     model.compile(loss='categorical_crossentropy',
               optimizer='adam',
