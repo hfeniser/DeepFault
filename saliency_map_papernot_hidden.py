@@ -51,7 +51,7 @@ class JacobianSaliency(object):
         return saliency_map
 
 X_train, y_train, X_test, y_test = load_data()
-model = load_model()
+model = load_model('simple_mnist_fnn')
 
 predictions = model.predict(X_test)
 idx = 0

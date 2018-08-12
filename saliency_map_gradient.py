@@ -1,7 +1,7 @@
 from keras.models import Sequential, model_from_json
 from keras import backend as K
 from collections import defaultdict
-from utils import load_data
+from utils import load_data, load_model
 import numpy as np
 import argparse
 import tensorflow as tf
@@ -22,17 +22,7 @@ class GradientSaliency(object):
         return gradients
 
 
-json_file = open('simple_mnist_fnn.json', 'r')
-loaded_model_json = json_file.read()
-json_file.close()
-model = model_from_json(loaded_model_json)
-# load weights into model
-model.load_weights("simple_mnist_fnn.h5")
-
-model.compile(loss='categorical_crossentropy',
-              optimizer='adam',
-              metrics=['accuracy'])
-
+model = load_model('simple_mnist_fnn')
 
 X_train, y_train, X_test, y_test = load_data()
 
