@@ -6,14 +6,7 @@ target_neuron_layer = 2
 target_neuron_index = 20
 
 X_train, y_train, X_test, y_test = load_data()
-model = load_model('simple_mnist_fnn')
-
-X = np.array(X_test[0])
-X = X.expand_dims(img, axis=0)
-layer_outs = get_layer_outs(model, X)
-
-print model.layers[0].get_weights()
-exit()
+model = load_model('mnist_test_model_2_100')
 
 var_names=['d']
 objective=[1]
@@ -84,5 +77,16 @@ for i in range(1, target_neuron_layer+1):
 
         constraints.append(constraint)
 
+        _constraint=[[],[]]
+        _constraint[0].append("x_"+str(i)+"_"+str(j))
+        _constraint[1].append(1)
+        constraints.append(_constraint)
+        rhs.append(0)
 
+        if layer_outs[i][j] > 0:
+            constraint_senses.append("G")
+        else:
+            constraint_senses.append("L")
+
+        constraint_names.append("relu:"+"x_"+str(i)+"_"+str(j))
 

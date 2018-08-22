@@ -1,8 +1,8 @@
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten
-from load_mnist import data_mnist
+from utils import load_data
 
-X_train, Y_train, X_test, Y_test = data_mnist()
+X_train, Y_train, X_test, Y_test = load_data()
 
 num_hidden = int(raw_input('Enter number of hidden layers: '))
 num_neuron = int(raw_input('Enter number of neurons in each hidden layer:'))
@@ -17,10 +17,10 @@ model.add(Flatten(input_shape=(1,28,28)))
 
 #Add hidden layers.
 for _ in range(num_hidden):
-    model.add(Dense(num_neuron, activation='relu'))
+    model.add(Dense(num_neuron, activation='relu', use_bias=False))
 
 #Add output layer.
-model.add(Dense(10, activation='softmax'))
+model.add(Dense(10, activation='softmax', use_bias=False))
 
 model.compile(loss='categorical_crossentropy',
               optimizer='adam',
