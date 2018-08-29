@@ -70,8 +70,11 @@ for i in range(1, target_neuron_layer+1):
         for k in range(model.layers[i-1].output_shape[1]):
             constraint[0].append("x_"+str(i-1)+"_"+str(k))
 
-            #for some reason 0th layer has no weights thus we say i instead of i-1
-            constraint[1].append(float(model.layers[i].get_weights()[0][k][j]))
+            if layer_outs[i][0][0][j] > 0 or (i==target_neuron_layer and j==target_neuron_index):
+                #for some reason 0th layer has no weights thus we say i instead of i-1
+                constraint[1].append(float(model.layers[i].get_weights()[0][k][j]))
+            else:
+                constraint[1].append(0)
 
         rhs.append(0)
         if not (i == target_neuron_layer and j == target_neuron_index):
