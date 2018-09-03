@@ -6,6 +6,8 @@ import argparse
 from train_nn import train_model
 from test_nn import  test_model
 from lp import run_lp
+from os import path
+
 
 def parse_arguments():
     """
@@ -16,6 +18,7 @@ def parse_arguments():
     # define the program description
     text = 'Fault localisation for Deep Neural Networks'
 
+    # print (os.getcwd())
     # initiate the parser
     parser = argparse.ArgumentParser(description=text)
 
@@ -23,6 +26,7 @@ def parse_arguments():
     parser.add_argument("-V", "--version", help="show program version",    action="store_true")
     parser.add_argument("-L", "--layers",  help="number of hidden layers")
     parser.add_argument("-N", "--neurons", help="number of neurons in each hidden layer")
+    parser.add_argument("-M", "--model",   help="the model to be loaded")
 
 
     #parse command-line arguments
@@ -48,6 +52,16 @@ def parse_arguments():
         except ValueError:
             valid_args = False
             print(args.neurons, "is not a valid argument for the number of neurons in each hidden layer")
+    if args.model:
+        try:
+            if not (path.isfile(args.model+".json") and
+                    path.isfile(args.model + ".h5")):
+                raise FileNotFoundError ("Model %s not found" % args.model)
+                valid_args = False
+        except FileNotFoundError as e:
+            valid_args = False
+            print(e)
+
     if not valid_args:
         exit(-1)
 
@@ -60,7 +74,11 @@ if __name__ == "__main__":
     #     print(key,"\t", value)
 
     #1) train the neural network and save the network and its weights after the training
-    model_name = train_model(args)
+    #if the model is given don't train it again
+    if 'model' in args:
+        model_name = args['model']
+    else:
+        model_name = train_model(args)
 
     #2) test the model
     correct_classifications, incorrect_classifications = test_model(model_name)
@@ -70,5 +88,5 @@ if __name__ == "__main__":
 
 
     #4) Run LP
-    run_lp()
+    # run_lp()
 
