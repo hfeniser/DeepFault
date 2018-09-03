@@ -83,10 +83,14 @@ if __name__ == "__main__":
     #2) test the model
     correct_classifications, incorrect_classifications = test_model(model_name)
 
-    #TODO:need to modify the scripts that perform the identification so that to match the workflow
+    #TODO: Hasan: need to modify the scripts that perform the identification so that to match the workflow
+    #This function will receive the incorrect classifications and identify the dominant neurons for each layer
     #3) Identify dominant neurons
 
 
+    #TODO: Simos: this function will receice the set of dominant neurons for each layer from Step 3
+    #and will produce new inputs based on the correct classifications (from the testing set)
+    #that exercise the dominant neurons
     #4) Run LP
     # run_lp()
 
