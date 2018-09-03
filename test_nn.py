@@ -5,7 +5,7 @@ import numpy as np
 def test_model(model_name):
     """
     Test a neural network on the MNIST dataset.
-    :return:
+    :return: indexes from testing set of correct and incorrect classifications
     """
     #Load MNIST data
     X_train, Y_train, X_test, Y_test = load_data()

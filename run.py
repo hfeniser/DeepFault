@@ -80,7 +80,7 @@ if __name__ == "__main__":
     else:
         model_name = train_model(args)
 
-    #2) test the model
+    #2) test the model and receive the indexes of correct and incorrect classifications
     correct_classifications, incorrect_classifications = test_model(model_name)
 
     #TODO: Hasan: need to modify the scripts that perform the identification so that to match the workflow
