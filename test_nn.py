@@ -42,10 +42,11 @@ def test_model(model_name):
         else:
             incorrect_classifications.append(i)
 
+    print("Testing done!\n")
+
     return correct_classifications, incorrect_classifications
 
 
-    print("Testing done!\n")
 
 
 if __name__ == "__main__":
