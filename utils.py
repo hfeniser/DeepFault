@@ -3,9 +3,11 @@ from keras.utils import np_utils
 from keras.models import model_from_json
 from keras import backend as K
 import sys
-
+from sklearn.metrics import classification_report, confusion_matrix
+from math import ceil
 import matplotlib.pyplot as plt
 import numpy as np
+
 
 def load_data(one_hot=True):
     """
@@ -72,3 +74,41 @@ def show_image(vector):
     img = vector
     plt.imshow(img)
     plt.show()
+
+
+def calculate_prediction_metrics(Y_test, Y_pred, score):
+    """
+    Calculate classification report and confusion matrix
+    :param Y_test:
+    :param Y_pred:
+    :param score:
+    :return:
+    """
+    #Find test and prediction classes
+    Y_test_class = np.argmax(Y_test, axis=1)
+    Y_pred_class = np.argmax(Y_pred, axis=1)
+
+    classifications = np.absolute(Y_test_class - Y_pred_class)
+
+    correct_classifications = []
+    incorrect_classifications = []
+    for i in range(1, len(classifications)):
+        if (classifications[i] == 0):
+            correct_classifications.append(i)
+        else:
+            incorrect_classifications.append(i)
+
+
+    # Accuracy of the predicted values
+    print(classification_report(Y_test_class, Y_pred_class))
+    print(confusion_matrix(Y_test_class, Y_pred_class))
+
+    acc = sum([np.argmax(Y_test[i]) == np.argmax(Y_pred[i]) for i in range(len(Y_test))]) / len(Y_test)
+    v1 = ceil(acc*10000)/10000
+    v2 = ceil(score[1]*10000)/10000
+    correct_accuracy_calculation =  v1 == v2
+    try:
+        if not correct_accuracy_calculation:
+            raise Exception("Accuracy results don't match to score")
+    except Exception as error:
+        print("Caught this error: " + repr(error))
