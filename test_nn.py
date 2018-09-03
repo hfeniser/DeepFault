@@ -24,6 +24,9 @@ def test_model(model_name):
     Y_pred = model.predict(X_test)
     #print(Y_pred)
 
+    # Calculate classification report and confusion matrix
+    calculate_prediction_metrics(Y_test, Y_pred, score)
+
     #Find test and prediction classes
     Y_test_class = np.argmax(Y_test, axis=1)
     Y_pred_class = np.argmax(Y_pred, axis=1)
@@ -43,3 +46,7 @@ def test_model(model_name):
 
 
     print("Testing done!\n")
+
+
+if __name__ == "__main__":
+    test_model("neural_networks/mnist_test_model_5_5")
