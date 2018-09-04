@@ -59,8 +59,8 @@ for pred, crrct in zip(predictions, y_test):
     predicted_class = np.unravel_index(pred.argmax(), pred.shape)[0]
     true_class = np.unravel_index(crrct.argmax(), crrct.shape)[0]
     if predicted_class != true_class:
-        print 'predicted: ' + str( predicted_class)
-        print 'true: ' + str(true_class)
+        print('predicted: ' + str( predicted_class))
+        print('true: ' + str(true_class))
         break
     idx += 1
 
@@ -73,8 +73,8 @@ saliency_map = saliency.get_saliency_map(tst, model, 5, 'increase')[0]
 
 max_sal = max(saliency_map)
 max_ind = list(saliency_map).index(max_sal)
-print max_sal
-print max_ind
+print(max_sal)
+print(max_ind)
 
 
 

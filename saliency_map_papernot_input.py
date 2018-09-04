@@ -24,7 +24,7 @@ class JacobianSaliency(object):
         gradient_repo = []
         for k in range(model.outputs[0].shape[1]):
             gradient_repo.append(self.compute_gradients[k]([input_image])[0][0][0])
-        print target_label
+        print (target_label)
 
         saliency_map = []
         for i in range(len(input_image[0][0])):
@@ -63,15 +63,15 @@ for pred, crrct in zip(predictions, y_test):
     predicted_class = np.unravel_index(pred.argmax(), pred.shape)[0]
     true_class = np.unravel_index(crrct.argmax(), crrct.shape)[0]
     if predicted_class != true_class:
-        print predicted_class
-        print true_class
+        print(predicted_class)
+        print(true_class)
         break
     idx += 1
 
-print y_test[idx]
+print(y_test[idx])
 img = np.array(X_test[idx])
 img = np.expand_dims(img, axis=0)
-print model.predict(img)
+print(model.predict(img))
 saliency = JacobianSaliency(model)
 saliency_map = saliency.get_saliency_map(img, model, 5, 'increase')
 
@@ -87,7 +87,7 @@ for sub in saliency_map:
 X_test[idx][0][i][j] = 1
 img = np.array(X_test[idx])
 img = np.expand_dims(img, axis=0)
-print model.predict(img)
+print(model.predict(img))
 
 #jsma(model, X_test[0], 1)
 
