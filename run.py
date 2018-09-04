@@ -11,6 +11,10 @@ from spectrum_analysis import *
 from weighted_analysis import *
 from utils import save_perturbed_test_groups, get_dummy_dominants
 from datetime import datetime
+from sklearn.model_selection import train_test_split
+
+#Provide a seed for reproducability
+seed = 7
 
 def parse_arguments():
     """
@@ -80,9 +84,14 @@ if __name__ == "__main__":
     args = parse_arguments()
     args['model'] = "neural_networks/mnist_test_model_5_5"
     args['test'] = True
-    args['approach'] = 'intersection'
+    # args['approach'] = 'intersection'
     # for key,value in args.items():
     #     print(key,"\t", value)
+
+
+    # 0) Load MNIST data
+    X_train, Y_train, X_test, Y_test = load_data()
+    X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=1/6, random_state=seed)
 
     # 1)train the neural network and save the network and its weights after the training
     # Note: if the model is given as a command-line argument don't train it again
@@ -95,6 +104,8 @@ if __name__ == "__main__":
     # define experiment name
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     experiment_name = model_name + "_" + timestamp
+
+    test_model(model, X_test, Y_test)
 
     # 2)test the model and receive the indexes of correct and incorrect classifications
     # Also provide output of each neuron in each layer for tst input x.
@@ -129,7 +140,10 @@ if __name__ == "__main__":
     # and will produce new inputs based on the correct classifications (from the testing set)
     # that exercise the dominant neurons
     # 4) Run LP
-    x_perturbed, y_perturbed = run_lp(model_name, dominant_neuron_idx, correct_classifications)
+    x_perturbed, y_perturbed = run_lp(model, dominant_neuron_idx, correct_classifications)
+
+    # reshape them into the expected format
+    x_perturbed = x_perturbed.reshape(x_perturbed.shape[0], 1, 28, 28)
 
     #save perturtbed inputs
     save_perturbed_test_groups(x_perturbed, y_perturbed, experiment_name, 1)
