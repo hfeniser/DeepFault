@@ -16,19 +16,19 @@ def coarse_weighted_analysis(correct_classification_idx, misclassification_idx, 
     for layer_idx in range(1, len(layer_outs[1:])):
         test_idx = 0
         for l in layer_outs[layer_idx][0]:
-            if test_idx not in misclassification_idx: continue
+            if test_idx not in misclassification_idx:
+                test_idx +=1
+                continue
             max_idx = np.where(l == l.max())
-            scores[layer_idx-1][max_idx] += 1
+            scores[layer_idx][max_idx] += 1
             test_idx += 1
 
-    for i in len(scores):
-        for j in len(scores[i]):
-            if scores[i][j] > 5: #score threshold, what's the correct value? maybe can be found through experiments?
+    for i in range(len(scores)):
+        for j in range(len(scores[i])):
+            if scores[i][j] > 200: #score threshold, what's the correct value? maybe can be found through experiments?
                 dominant_neuron_idx[i].append(j)
 
-    print(dominant_neuron_idx)
-
-    return dominant_neuron_idx
+    return dominant_neuron_idx[1:-1]
 
 
 

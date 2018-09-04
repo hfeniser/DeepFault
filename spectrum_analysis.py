@@ -7,18 +7,21 @@ from utils import get_layer_outs
 np.random.seed(7)
 
 def coarse_intersection_analysis(correct_classification_idx, misclassification_idx, layer_outs):
+
     dominant_neuron_idx = []
 
     for l_out in layer_outs[1:]:
         dominant = range(len(l_out[0][0]))
         test_idx = 0
         for l in l_out[0]:
-            if test_idx not in misclassification_idx: continue
-            dominant = np.intersect1d(dominant, np.where(l > 0))
+            if test_idx not in misclassification_idx: 
+                test_idx += 1
+                continue
+            dominant = list(np.intersect1d(dominant, np.where(l > 0)))
             test_idx += 1
         dominant_neuron_idx.append(dominant)
 
-    return dominant_neuron_idx
+    return dominant_neuron_idx[:-1]
 
 
 def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_outs):
@@ -62,10 +65,10 @@ def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_
         for j in range(len(scores[i])):
             score =  float(float(num_cf[i][j]) / (num_cf[i][j] + num_uf[i][j])) / (float(num_cf[i][j]) / (num_cf[i][j] + num_uf[i][j]) + float(num_cs[i][j]) / (num_cs[i][j] + num_us[i][j]))
             scores[i][j] = score
-            if score > 0.6:  # threshold for identifying the dominant neurons. Deciding its value via experimentation?
+            if score > 0.53:  # threshold for identifying the dominant neurons. Deciding its value via experimentation?
                 dominant_neuron_idx[i].append(j)
 
-    return dominant_neuron_idx
+    return dominant_neuron_idx[1:-1]
 
 
 def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_outs):
@@ -110,10 +113,10 @@ def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_out
         for j in range(len(scores[i])):
             score = float(num_cf[i][j]) / ((num_cf[i][j] + num_uf[i][j]) * (num_cf[i][j] + num_cs[i][j])) **(.5)
             scores[i][j] = score
-            if score > 0.6: # threshold for identifying the dominant neurons. Deciding its value via experimentation?
+            if score > 0.29: # threshold for identifying the dominant neurons. Deciding its value via experimentation?
                 dominant_neuron_idx[i].append(j)
 
-    return dominant_neuron_idx
+    return dominant_neuron_idx[1:-1]
 
 
 def fine_intersection_analysis(model, predictions, true_classes,
