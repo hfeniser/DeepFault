@@ -80,19 +80,26 @@ if __name__ == "__main__":
     #     print(key,"\t", value)
 
     #1) train the neural network and save the network and its weights after the training
-    #if the model is given don't train it again
-    if 'model' in args:
+    #Note: if the model is given as a command-line argument don't train it again
+    if not args['model'] is None:
         model_name = args['model']
     else:
         model_name = train_model(args)
 
     #2) test the model and receive the indexes of correct and incorrect classifications
-    correct_classifications, incorrect_classifications = test_model(model_name)
+    if not args['test'] is None and args['test']:
+        correct_classifications, incorrect_classifications = test_model(model_name)
 
     #TODO: Hasan: need to modify the scripts that perform the identification so that to match the workflow
     #This function will receive the incorrect classifications and identify the dominant neurons for each layer
     #3) Identify dominant neurons
 
+    #Assume these are generate in Step3
+    from utils import load_model
+    model = load_model("neural_networks/mnist_test_model_5_5")
+    import random
+    dominant = {x: random.sample(range(model.layers[x].output_shape[1]), 2) for x in range(1, len(model.layers) - 1)}
+    print(dominant)
 
     #TODO: Simos: this function will receice the set of dominant neurons for each layer from Step 3
     #and will produce new inputs based on the correct classifications (from the testing set)
