@@ -77,6 +77,8 @@ def parse_arguments():
 
 if __name__ == "__main__":
     args = parse_arguments()
+    args['model'] = "neural_networks/mnist_test_model_5_5"
+    args['test']  = True
     # for key,value in args.items():
     #     print(key,"\t", value)
 
@@ -95,6 +97,7 @@ if __name__ == "__main__":
     #TODO: Hasan: need to modify the scripts that perform the identification so that to match the workflow
     #This function will receive the incorrect classifications and identify the dominant neurons for each layer
     #3) Identify dominant neurons
+    # e.g., weighted_analysis (correct_classifications, incorrect_classifications)
 
     if args['approach'] == 'intersection':
         dominant_neuron_idx = coarse_intersection_analysis(correct_classifications, incorrect_classifications, layer_outs)
@@ -105,18 +108,16 @@ if __name__ == "__main__":
     elif args['approach'] == 'weighted':
         dominant_neuron_idx = coarse_weighted_analysis(correct_classifications, incorrect_classifications, layer_outs)
     else:
-        print 'Please enter a valid approach to localize dominant neurons.'
+        print('Please enter a valid approach to localize dominant neurons.')
 
-    #Assume these are generate in Step3
-    from utils import load_model
-    model = load_model("neural_networks/mnist_test_model_5_5")
-    import random
-    dominant_neuron_idx = {x: random.sample(range(model.layers[x].output_shape[1]), 2) for x in range(1, len(model.layers) - 1)}
-    print(dominant_neuron_idx)
+    #Assume these are generated in Step3
+    from utils import get_dummy_dominants
+    dominant_neuron_idx = get_dummy_dominants(model_name)
 
     #TODO: Simos: this function will receice the set of dominant neurons for each layer from Step 3
     #and will produce new inputs based on the correct classifications (from the testing set)
     #that exercise the dominant neurons
     #4) Run LP
     # run_lp()
+    #run_lp(model_name, dominant_neuron_idx, correct_classifications)
 
