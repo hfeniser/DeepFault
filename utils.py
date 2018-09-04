@@ -114,8 +114,7 @@ def calculate_prediction_metrics(Y_test, Y_pred, score):
         print("Caught this error: " + repr(error))
 
 
-def get_dummy_dominants(model_name):
-    model = load_model(model_name)
+def get_dummy_dominants(model):
     import random
     dominant = {x: random.sample(range(model.layers[x].output_shape[1]), 2) for x in range(1, len(model.layers) - 1)}
 
@@ -159,9 +158,9 @@ def load_perturbed_test(filename):
 
 
 def load_perturbed_test_groups(filename, group_index):
-    with h5py.File(filename + '_perturbations_y.h5', 'r') as hf:
-        group = hf.get('group'+group_index)
-        x_perturbed = group.get('x_perturbed')
-        y_perturbed = group.get('y_perturbed')
+    with h5py.File(filename + '_perturbations.h5', 'r') as hf:
+        group = hf.get('group' + str(group_index))
+        x_perturbed = group.get('x_perturbed').value
+        y_perturbed = group.get('y_perturbed').value
 
         return x_perturbed, y_perturbed

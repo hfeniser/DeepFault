@@ -11,6 +11,10 @@ from spectrum_analysis import *
 from weighted_analysis import *
 from utils import save_perturbed_test_groups, get_dummy_dominants
 from datetime import datetime
+from sklearn.model_selection import train_test_split
+
+#Provide a seed for reproducability
+seed = 7
 
 def parse_arguments():
     """
@@ -84,23 +88,32 @@ if __name__ == "__main__":
     # for key,value in args.items():
     #     print(key,"\t", value)
 
+
+    # 0) Load MNIST data
+    X_train, Y_train, X_test, Y_test = load_data()
+    X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=1/6, random_state=seed)
+
     # 1)train the neural network and save the network and its weights after the training
     # Note: if the model is given as a command-line argument don't train it again
     if not args['model'] is None:
         model_name = args['model']
+        model = load_model(model_name)
     else:
-        model_name = train_model(args)
+        model_name, model = train_model(args, X_train, Y_train, X_test, Y_test)
 
     # define experiment name
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     experiment_name = model_name + "_" + timestamp
 
+    test_model(model, X_test, Y_test)
+
     # 2)test the model and receive the indexes of correct and incorrect classifications
     # Also provide output of each neuron in each layer for tst input x.
     if not args['test'] is None and args['test']:
-        correct_classifications, incorrect_classifications, layer_outs = test_model(model_name)
+        correct_classifications, incorrect_classifications, layer_outs = test_model(model, X_val, Y_val)
 
-    # TODO: Hasan: need to modify the scripts that perform the identification so that to match the workflow
+
+    # TODO: need to modify the scripts that perform the identification so that to match the workflow
     # This function will receive the incorrect classifications and identify the dominant neurons for each layer
     # 3) Identify dominant neurons
     # e.g., weighted_analysis (correct_classifications, incorrect_classifications)
@@ -119,17 +132,18 @@ if __name__ == "__main__":
     # Assume these are generated in Step3
     # from utils import get_dummy_dominants
     if not dominant_neuron_idx:
-        dominant_neuron_idx = get_dummy_dominants(model_name)
-        print ("no fault localisation approach specified. Generating random dominant neurons", dominant_neuron_idx)
+        dominant_neuron_idx = get_dummy_dominants(model)
+        print("no fault localisation approach specified. Generating random dominant neurons", dominant_neuron_idx)
 
-    print(dominant_neuron_idx)
-    exit(-1)
 
-    # TODO: Simos: this function will receice the set of dominant neurons for each layer from Step 3
+    # TODO: this function will receice the set of dominant neurons for each layer from Step 3
     # and will produce new inputs based on the correct classifications (from the testing set)
     # that exercise the dominant neurons
     # 4) Run LP
-    x_perturbed, y_perturbed = run_lp(model_name, dominant_neuron_idx, correct_classifications)
+    x_perturbed, y_perturbed = run_lp(model, dominant_neuron_idx, correct_classifications)
+
+    # reshape them into the expected format
+    x_perturbed = x_perturbed.reshape(x_perturbed.shape[0], 1, 28, 28)
 
     #save perturtbed inputs
     save_perturbed_test_groups(x_perturbed, y_perturbed, experiment_name, 1)

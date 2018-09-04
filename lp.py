@@ -3,7 +3,7 @@ import cplex
 import numpy as np
 
 
-def run_lp(model_name=None, dominant=None, correct_classifications=None):
+def run_lp(model=None, dominant=None, correct_classifications=None):
     """
 
     :param dominant:
@@ -15,10 +15,7 @@ def run_lp(model_name=None, dominant=None, correct_classifications=None):
     x_perturbed = []
     y_perturbed = []
 
-    # Load saved model
-    # TODO: model can be passed as a parameter to save time and memory
-    model = load_model(model_name)
-    print(model.summary())
+    # print(model.summary())
 
     # for all the testing set
     for test_index in range(0, len(x_test)):

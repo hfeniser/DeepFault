@@ -2,16 +2,14 @@ from utils import load_data, load_model, calculate_prediction_metrics, get_layer
 import numpy as np
 
 
-def test_model(model_name):
+def test_model(model, X_test, Y_test):
     """
     Test a neural network on the MNIST dataset.
     :return: indexes from testing set of correct and incorrect classifications
     """
-    # Load MNIST data
-    X_train, Y_train, X_test, Y_test = load_data()
 
     # Load saved model
-    model = load_model(model_name)
+    # model = load_model(model_name)
 
     # Find activations of each neuron in each layer for each input x in X_test
     layer_outs = get_layer_outs(model, X_test)
