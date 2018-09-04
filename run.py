@@ -78,9 +78,9 @@ def parse_arguments():
 
 if __name__ == "__main__":
     args = parse_arguments()
-    args['model'] = "neural_networks/mnist_test_model_5_5"
+    #args['model'] = "neural_networks/mnist_test_model_5_5"
     args['test'] = True
-    args['approach'] = 'intersection'
+    #args['approach'] = 'intersection'
     # for key,value in args.items():
     #     print(key,"\t", value)
 
