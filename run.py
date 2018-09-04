@@ -3,7 +3,7 @@ This is the main file that executes the flow
 of our fault localisation technique
 """
 import argparse
-from train_nn import train_model
+from train_nn import train_model, train_model_fault_localisation
 from test_nn import test_model
 from lp import run_lp
 from os import path
@@ -82,12 +82,11 @@ def parse_arguments():
 
 if __name__ == "__main__":
     args = parse_arguments()
-    #args['model'] = "neural_networks/mnist_test_model_5_5"
+    args['model'] = "neural_networks/mnist_test_model_10_10"
     args['test'] = True
-    #args['approach'] = 'intersection'
-    # for key,value in args.items():
-    #     print(key,"\t", value)
-
+    args['approach'] = 'tarantula'
+    # args['neurons'] = 10
+    # args['layers'] = 10
 
     # 0) Load MNIST data
     X_train, Y_train, X_test, Y_test = load_data()
@@ -95,7 +94,7 @@ if __name__ == "__main__":
 
     # 1)train the neural network and save the network and its weights after the training
     # Note: if the model is given as a command-line argument don't train it again
-    if not args['model'] is None:
+    if args['model'] is not None:
         model_name = args['model']
         model = load_model(model_name)
     else:
@@ -129,23 +128,29 @@ if __name__ == "__main__":
     else:
         print('Please enter a valid approach to localize dominant neurons.')
 
+
     # Assume these are generated in Step3
     # from utils import get_dummy_dominants
     if not dominant_neuron_idx:
-        dominant_neuron_idx = get_dummy_dominants(model)
+        dominant = get_dummy_dominants(model)
         print("no fault localisation approach specified. Generating random dominant neurons", dominant_neuron_idx)
-
+    else:
+        dominant = {x: dominant_neuron_idx[x - 1] for x in range(1, len(dominant_neuron_idx) + 1)}
 
     # TODO: this function will receice the set of dominant neurons for each layer from Step 3
     # and will produce new inputs based on the correct classifications (from the testing set)
     # that exercise the dominant neurons
     # 4) Run LP
-    x_perturbed, y_perturbed = run_lp(model, dominant_neuron_idx, correct_classifications)
+    x_perturbed, y_perturbed = run_lp(model, X_val, Y_val, dominant, correct_classifications)
 
     # reshape them into the expected format
-    x_perturbed = x_perturbed.reshape(x_perturbed.shape[0], 1, 28, 28)
+    x_perturbed = np.asarray(x_perturbed).reshape(np.asarray(x_perturbed).shape[0], 1, 28, 28)#
+    y_perturbed = np.asarray(y_perturbed).reshape(np.asarray(y_perturbed).shape[0], 10)#
+    #x_perturbed.reshape(x_perturbed.shape[0], 1, 28, 28)
 
     #save perturtbed inputs
     save_perturbed_test_groups(x_perturbed, y_perturbed, experiment_name, 1)
 
+    train_model_fault_localisation(model, x_perturbed, y_perturbed)
 
+    test_model(model, X_test, Y_test)

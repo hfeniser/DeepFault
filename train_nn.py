@@ -6,6 +6,24 @@ from utils import get_python_version
 python_version = get_python_version()
 
 
+def __save_trained_model(model=None, num_hidden=None, num_neuron=None):
+    directory = "neural_networks/"
+    model_name = 'mnist_test_model_' + str(num_hidden) + '_' + str(num_neuron)
+    model_filename = directory + model_name + ".json"
+    weights_filename = model_name + ".h5"
+
+    # serialize model to JSON
+    model_json = model.to_json()
+    with open(model_filename, "w") as json_file:
+        json_file.write(model_json)
+
+    # serialize weights to HDF5
+    model.save_weights(weights_filename)
+    print("Model saved to disk with name: " + model_name)
+
+    return model_name
+
+
 def train_model(args, X_train=None, Y_train=None, X_test=None, Y_test=None):
     """
     Construct a neural network, given the parameters, and train it on the MNIST dataset.
@@ -60,19 +78,7 @@ def train_model(args, X_train=None, Y_train=None, X_test=None, Y_test=None):
         score = model.evaluate(X_test, Y_test, verbose=0)
         print('[loss, accuracy] -> ' + str(score))
 
-    directory = "neural_networks/"
-    model_name = directory + 'mnist_test_model_' + str(num_hidden) + '_' + str(num_neuron)
-    model_filename =  model_name + ".json"
-    weights_filename = model_name + ".h5"
-
-    # serialize model to JSON
-    model_json = model.to_json()
-    with open(model_filename, "w") as json_file:
-        json_file.write(model_json)
-
-    # serialize weights to HDF5
-    model.save_weights(weights_filename)
-    print("Model saved to disk with name: " + model_name)
+    model_name = __save_trained_model(model, num_hidden, num_neuron)
 
     print("Training done\n")
 
@@ -81,3 +87,18 @@ def train_model(args, X_train=None, Y_train=None, X_test=None, Y_test=None):
 
 if __name__ == "__main__":
     train_model(None)
+
+
+def train_model_fault_localisation(model, X_train, Y_train):
+    """
+    Method for retraining the neural network based on the perturbed inputs
+    :param X_train: perturbed input
+    :param Y_train: perturbed labels
+    :return:
+    """
+
+    # Print information about the model
+    print(model.summary())
+
+    # Fit the model
+    model.fit(X_train, Y_train, batch_size=32, epochs=10, verbose=1)
