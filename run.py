@@ -146,7 +146,6 @@ if __name__ == "__main__":
     # reshape them into the expected format
     x_perturbed = np.asarray(x_perturbed).reshape(np.asarray(x_perturbed).shape[0], 1, 28, 28)#
     y_perturbed = np.asarray(y_perturbed).reshape(np.asarray(y_perturbed).shape[0], 10)#
-    #x_perturbed.reshape(x_perturbed.shape[0], 1, 28, 28)
 
     #save perturtbed inputs
     save_perturbed_test_groups(x_perturbed, y_perturbed, experiment_name, 1)

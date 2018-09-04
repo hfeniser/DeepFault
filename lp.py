@@ -21,7 +21,7 @@ def run_lp(model, X_val, Y_val, dominant, correct_classifications):
     for test_index in range(0, len(X_val)):
 
         # if this testing input has been classified correctly, generate perturbations
-        if test_index in correct_classifications:
+        if test_index not in correct_classifications:
             continue
 
         # Here we get the first input from the testing set
@@ -194,7 +194,7 @@ def run_lp(model, X_val, Y_val, dominant, correct_classifications):
             # show_image(np.asarray(flatX).reshape(dims, dims))
             # show_image(np.asarray(new_x).reshape(dims, dims))
 
-        if len(x_perturbed) > 100:
+        if len(x_perturbed) > 200:
             return x_perturbed, y_perturbed
 
     return x_perturbed, y_perturbed
