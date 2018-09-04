@@ -26,7 +26,8 @@ def parse_arguments():
     parser.add_argument("-V", "--version", help="show program version",    action="store_true")
     parser.add_argument("-L", "--layers",  help="number of hidden layers")
     parser.add_argument("-N", "--neurons", help="number of neurons in each hidden layer")
-    parser.add_argument("-M", "--model",   help="the model to be loaded")
+    parser.add_argument("-M", "--model",   help="the model to be loaded. When this parameter is set, the specified model is used")
+    parser.add_argument("-T", "--test",   help="the model to be loaded. When this parameter is set, the specified model is used")
 
 
     #parse command-line arguments
@@ -34,33 +35,38 @@ def parse_arguments():
 
     # check arguments
     valid_args = True
-    if args.version:
-        print("this is myprogram version 0.1")
-    if args.layers:
-        try:
-            value = int(args.layers)
-            args.layers = value
-            print("The NN has %s hidden layers" % args.layers)
-        except ValueError:
-            valid_args = False
-            print(args.hidden, "is not a valid argument for the number of hidden layers")
-    if args.neurons:
-        try:
-            value = int(args.neurons)
-            args.neurons = value
-            print("Each hidden layer has %s neurons" % args.neurons)
-        except ValueError:
-            valid_args = False
-            print(args.neurons, "is not a valid argument for the number of neurons in each hidden layer")
-    if args.model:
-        try:
+    try:
+        if args.version:
+            print("this is myprogram version 0.1")
+        if args.layers:
+            if isinstance(args.layers, int) or args.layers.isdigit():
+                value = int(args.layers)
+                args.layers = value
+                print("The NN has %s hidden layers" % args.layers)
+            else:
+                raise ValueError("%s is not a valid argument for the number of neurons in each hidden layer" % args.layers)
+        if args.neurons:
+            if isinstance(args.neurons, int) or args.neurons.isdigit():
+                value = int(args.neurons)
+                args.neurons = value
+                print("Each hidden layer has %s neurons" % args.neurons)
+            else:
+                raise ValueError("%s is not a valid argument for the number of neurons in each hidden layer" % args.neurons)
+        if args.model:
             if not (path.isfile(args.model+".json") and
                     path.isfile(args.model + ".h5")):
                 raise FileNotFoundError ("Model %s not found" % args.model)
                 valid_args = False
-        except FileNotFoundError as e:
-            valid_args = False
-            print(e)
+        if args.test:
+            if args.test == 'True':
+                args.test = True
+            elif args.test == 'False':
+                args.test = False
+            else:
+                raise ValueError ("Test argument is not valid ('%s')" % args.test)
+    except (ValueError, FileNotFoundError) as e:
+        valid_args = False
+        print (e)
 
     if not valid_args:
         exit(-1)
