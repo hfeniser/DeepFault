@@ -6,15 +6,13 @@ from utils import get_python_version
 python_version = get_python_version()
 
 
-def train_model(args):
+def train_model(args, X_train=None, Y_train=None, X_test=None, Y_test=None):
     """
     Construct a neural network, given the parameters, and train it on the MNIST dataset.
     Once done, save the neural network and its weights.
     :param args: arguments (# of hidden layers and neurons per layer)
     :return:
     """
-    # Load MNIST data
-    X_train, Y_train, X_test, Y_test = load_data()
 
     num_hidden = None if args == None else args['layers']
     num_neuron = None if args == None else args['neurons']
@@ -58,9 +56,9 @@ def train_model(args):
     model.fit(X_train, Y_train, batch_size=32, epochs=10, verbose=1)
 
     # Evaluate the model
-    score = model.evaluate(X_test, Y_test, verbose=0)
-
-    print('[loss, accuracy] -> ' + str(score))
+    if (X_test is not None and Y_test is not None):
+        score = model.evaluate(X_test, Y_test, verbose=0)
+        print('[loss, accuracy] -> ' + str(score))
 
     directory = "neural_networks/"
     model_name = directory + 'mnist_test_model_' + str(num_hidden) + '_' + str(num_neuron)
@@ -78,7 +76,7 @@ def train_model(args):
 
     print("Training done\n")
 
-    return model_name
+    return model_name, model
 
 
 if __name__ == "__main__":

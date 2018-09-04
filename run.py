@@ -88,8 +88,9 @@ if __name__ == "__main__":
     # Note: if the model is given as a command-line argument don't train it again
     if not args['model'] is None:
         model_name = args['model']
+        model = load_model(model_name)
     else:
-        model_name = train_model(args)
+        model_name, model = train_model(args, X_train, Y_train, X_test, Y_test)
 
     # define experiment name
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -98,9 +99,10 @@ if __name__ == "__main__":
     # 2)test the model and receive the indexes of correct and incorrect classifications
     # Also provide output of each neuron in each layer for tst input x.
     if not args['test'] is None and args['test']:
-        correct_classifications, incorrect_classifications, layer_outs = test_model(model_name)
+        correct_classifications, incorrect_classifications, layer_outs = test_model(model, X_val, Y_val)
 
-    # TODO: Hasan: need to modify the scripts that perform the identification so that to match the workflow
+
+    # TODO: need to modify the scripts that perform the identification so that to match the workflow
     # This function will receive the incorrect classifications and identify the dominant neurons for each layer
     # 3) Identify dominant neurons
     # e.g., weighted_analysis (correct_classifications, incorrect_classifications)
@@ -119,13 +121,11 @@ if __name__ == "__main__":
     # Assume these are generated in Step3
     # from utils import get_dummy_dominants
     if not dominant_neuron_idx:
-        dominant_neuron_idx = get_dummy_dominants(model_name)
-        print ("no fault localisation approach specified. Generating random dominant neurons", dominant_neuron_idx)
+        dominant_neuron_idx = get_dummy_dominants(model)
+        print("no fault localisation approach specified. Generating random dominant neurons", dominant_neuron_idx)
 
-    print(dominant_neuron_idx)
-    exit(-1)
 
-    # TODO: Simos: this function will receice the set of dominant neurons for each layer from Step 3
+    # TODO: this function will receice the set of dominant neurons for each layer from Step 3
     # and will produce new inputs based on the correct classifications (from the testing set)
     # that exercise the dominant neurons
     # 4) Run LP
