@@ -97,13 +97,13 @@ if __name__ == "__main__":
     #3) Identify dominant neurons
 
     if args['approach'] == 'intersection':
-        dominant_neuron_idx = coarse_intersection_analysis(correct_classifications, incorrect_classifications)
+        dominant_neuron_idx = coarse_intersection_analysis(correct_classifications, incorrect_classifications, layer_outs)
     elif args['approach'] == 'tarantula':
-        dominant_neuron_idx = tarantula_analysis(correct_classifications, incorrect_classifications)
+        dominant_neuron_idx = tarantula_analysis(correct_classifications, incorrect_classifications, layer_outs)
     elif args['approach'] == 'ochiai':
-        dominant_neuron_idx = ochiai_analysis(correct_classifications, incorrect_classifications)
+        dominant_neuron_idx = ochiai_analysis(correct_classifications, incorrect_classifications, layer_outs)
     elif args['approach'] == 'weighted':
-        dominant_neuron_idx = coarse_weighted_analysis(correct_classifications, incorrect_classifications)
+        dominant_neuron_idx = coarse_weighted_analysis(correct_classifications, incorrect_classifications, layer_outs)
     else:
         print 'Please enter a valid approach to localize dominant neurons.'
 
