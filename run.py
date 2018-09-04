@@ -7,7 +7,8 @@ from train_nn import train_model
 from test_nn import  test_model
 from lp import run_lp
 from os import path
-
+from spectrum_analysis import *
+from weighted_analysis import *
 
 def parse_arguments():
     """
@@ -28,7 +29,7 @@ def parse_arguments():
     parser.add_argument("-N", "--neurons", help="number of neurons in each hidden layer")
     parser.add_argument("-M", "--model",   help="the model to be loaded. When this parameter is set, the specified model is used")
     parser.add_argument("-T", "--test",   help="the model to be loaded. When this parameter is set, the specified model is used")
-
+    parser.add_argument("-A", "--approach", help="the approach to be employed to localize dominant neurons")
 
     #parse command-line arguments
     args = parser.parse_args()
@@ -95,12 +96,23 @@ if __name__ == "__main__":
     #This function will receive the incorrect classifications and identify the dominant neurons for each layer
     #3) Identify dominant neurons
 
+    if args['approach'] == 'intersection':
+        dominant_neuron_idx = coarse_intersection_analysis(correct_classifications, incorrect_classifications)
+    elif args['approach'] == 'tarantula':
+        dominant_neuron_idx = tarantula_analysis(correct_classifications, incorrect_classifications)
+    elif args['approach'] == 'ochiai':
+        dominant_neuron_idx = ochiai_analysis(correct_classifications, incorrect_classifications)
+    elif args['approach'] == 'weighted':
+        dominant_neuron_idx = coarse_weighted_analysis(correct_classifications, incorrect_classifications)
+    else:
+        print 'Please enter a valid approach to localize dominant neurons.'
+
     #Assume these are generate in Step3
     from utils import load_model
     model = load_model("neural_networks/mnist_test_model_5_5")
     import random
-    dominant = {x: random.sample(range(model.layers[x].output_shape[1]), 2) for x in range(1, len(model.layers) - 1)}
-    print(dominant)
+    dominant_neuron_idx = {x: random.sample(range(model.layers[x].output_shape[1]), 2) for x in range(1, len(model.layers) - 1)}
+    print(dominant_neuron_idx)
 
     #TODO: Simos: this function will receice the set of dominant neurons for each layer from Step 3
     #and will produce new inputs based on the correct classifications (from the testing set)
