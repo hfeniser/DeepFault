@@ -3,14 +3,14 @@ import cplex
 import numpy as np
 
 
-def run_lp(model=None, dominant=None, correct_classifications=None):
+def run_lp(model, X_val, Y_val, dominant, correct_classifications):
     """
 
     :param dominant:
     :return:
     """
     # Load MNIST data
-    x_train, y_train, x_test, y_test = load_data()
+    # x_train, y_train, x_test, y_test = load_data()
 
     x_perturbed = []
     y_perturbed = []
@@ -18,14 +18,14 @@ def run_lp(model=None, dominant=None, correct_classifications=None):
     # print(model.summary())
 
     # for all the testing set
-    for test_index in range(0, len(x_test)):
+    for test_index in range(0, len(X_val)):
 
         # if this testing input has been classified correctly, generate perturbations
-        if test_index not in correct_classifications:
+        if test_index in correct_classifications:
             continue
 
         # Here we get the first input from the testing set
-        x = x_test[test_index]
+        x = X_val[test_index]
         x = np.expand_dims(x, axis=0)
 
         # Flatten first input
@@ -186,16 +186,18 @@ def run_lp(model=None, dominant=None, correct_classifications=None):
 
         # append perturbed input
         if (d>0 and d<1):
-            print("perturbation for ", test_index)
             x_perturbed.append(new_x)
-            y_perturbed.append(y_test[test_index])
+            y_perturbed.append(Y_val[test_index])
+            print("perturbation for ", test_index, " perturbed inputs", len(x_perturbed))
 
-            dims = int(np.sqrt(len(flatX)))
-            show_image(np.asarray(flatX).reshape(dims, dims))
-            show_image(np.asarray(new_x).reshape(dims, dims))
+            # dims = int(np.sqrt(len(flatX)))
+            # show_image(np.asarray(flatX).reshape(dims, dims))
+            # show_image(np.asarray(new_x).reshape(dims, dims))
 
-        if len(x_perturbed) > 5:
+        if len(x_perturbed) > 100:
             return x_perturbed, y_perturbed
+
+    return x_perturbed, y_perturbed
 
 def run_lp_old():
     """
@@ -363,10 +365,11 @@ def run_lp_old():
 
 
 if __name__ == "__main__":
-    model_name = "neural_networks/mnist_test_model_5_5"
-    from utils import get_dummy_dominants
-    dominant = get_dummy_dominants(model_name)
-    run_lp(model_name, dominant)
+    model_name = "neural_networks/mnist_test_model_10_10"
+    from utils import get_dummy_dominants, load_model
+    model = load_model(model_name)
+    dominant = get_dummy_dominants(model)
+    run_lp(model, None, None, dominant, None)
 
 
 
