@@ -9,7 +9,6 @@ def run_lp(model_name=None, dominant=None, correct_classifications=None):
     :param dominant:
     :return:
     """
-
     # Load MNIST data
     x_train, y_train, x_test, y_test = load_data()
 

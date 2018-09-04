@@ -9,7 +9,7 @@ from lp import run_lp
 from os import path
 from spectrum_analysis import *
 from weighted_analysis import *
-from utils import save_perturbed_test, save_perturbed_test_groups
+from utils import save_perturbed_test_groups, get_dummy_dominants
 from datetime import datetime
 
 def parse_arguments():
@@ -80,6 +80,7 @@ if __name__ == "__main__":
     args = parse_arguments()
     args['model'] = "neural_networks/mnist_test_model_5_5"
     args['test'] = True
+    args['approach'] = 'intersection'
     # for key,value in args.items():
     #     print(key,"\t", value)
 
@@ -103,7 +104,7 @@ if __name__ == "__main__":
     # This function will receive the incorrect classifications and identify the dominant neurons for each layer
     # 3) Identify dominant neurons
     # e.g., weighted_analysis (correct_classifications, incorrect_classifications)
-
+    dominant_neuron_idx = []
     if args['approach'] == 'intersection':
         dominant_neuron_idx = coarse_intersection_analysis(correct_classifications, incorrect_classifications, layer_outs)
     elif args['approach'] == 'tarantula':
@@ -116,8 +117,13 @@ if __name__ == "__main__":
         print('Please enter a valid approach to localize dominant neurons.')
 
     # Assume these are generated in Step3
-    from utils import get_dummy_dominants
-    dominant_neuron_idx = get_dummy_dominants(model_name)
+    # from utils import get_dummy_dominants
+    if not dominant_neuron_idx:
+        dominant_neuron_idx = get_dummy_dominants(model_name)
+        print ("no fault localisation approach specified. Generating random dominant neurons", dominant_neuron_idx)
+
+    print(dominant_neuron_idx)
+    exit(-1)
 
     # TODO: Simos: this function will receice the set of dominant neurons for each layer from Step 3
     # and will produce new inputs based on the correct classifications (from the testing set)

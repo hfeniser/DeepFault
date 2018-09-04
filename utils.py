@@ -138,7 +138,7 @@ def save_perturbed_test_groups(x_perturbed, y_perturbed, filename, group_index):
     # Write:
     # save X
     with h5py.File(filename + '_perturbations.h5', 'w') as hf:
-        group = hf.create_group('group'+group_index)
+        group = hf.create_group('group'+str(group_index))
         group.create_dataset("x_perturbed", data=x_perturbed)
         group.create_dataset("y_perturbed", data=y_perturbed)
 
