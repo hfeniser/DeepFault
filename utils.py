@@ -30,8 +30,8 @@ def load_data(one_hot=True):
 
     if one_hot:
         #For output, it is important to change number to one-hot vector.
-        Y_train = np_utils.to_categorical(y_train, 10)
-        Y_test = np_utils.to_categorical(y_test, 10)
+        Y_train = np_utils.to_categorical(y_train, num_classes=10)
+        Y_test = np_utils.to_categorical(y_test, num_classes=10)
 
     return X_train, Y_train, X_test, Y_test
 
@@ -47,7 +47,6 @@ def load_model(model_name):
     model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
-
     return model
 
 
@@ -112,3 +111,11 @@ def calculate_prediction_metrics(Y_test, Y_pred, score):
             raise Exception("Accuracy results don't match to score")
     except Exception as error:
         print("Caught this error: " + repr(error))
+
+
+def get_dummy_dominants(model_name):
+    model = load_model(model_name)
+    import random
+    dominant = {x: random.sample(range(model.layers[x].output_shape[1]), 2) for x in range(1, len(model.layers) - 1)}
+
+    return dominant
