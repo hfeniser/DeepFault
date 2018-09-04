@@ -13,6 +13,9 @@ def test_model(model_name):
     #Load saved model
     model = load_model(model_name)
 
+    #Find activations of each neuron in each layer for each input x in X_test
+    layer_outs = get_layer_outs(model, X_test)
+
     #Print information about the model
     print(model.summary())
 
@@ -44,7 +47,7 @@ def test_model(model_name):
 
     print("Testing done!\n")
 
-    return correct_classifications, incorrect_classifications
+    return correct_classifications, incorrect_classifications, layer_outs
 
 
 

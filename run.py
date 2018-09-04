@@ -87,8 +87,9 @@ if __name__ == "__main__":
         model_name = train_model(args)
 
     #2) test the model and receive the indexes of correct and incorrect classifications
+    # Also provide output of each neuron in each layer for tst input x.
     if not args['test'] is None and args['test']:
-        correct_classifications, incorrect_classifications = test_model(model_name)
+        correct_classifications, incorrect_classifications, layer_outs = test_model(model_name)
 
     #TODO: Hasan: need to modify the scripts that perform the identification so that to match the workflow
     #This function will receive the incorrect classifications and identify the dominant neurons for each layer
