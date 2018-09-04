@@ -38,11 +38,12 @@ def intersection_analysis(predictions, true_classes, model, prdctn_tobe_anlyzd=N
 
     layer_outs = get_layer_outs(model, class_specific_test_set)
 
-    dominant_neuron_idx = []
+    dominant_neuron_idx= [[] for i in range(len(layer_outs))]
+
     for l_out in layer_outs[1:]:
         dominant = range(len(l_out[0][0]))
         for l in l_out[0]:
-            dominant = np.intersect1d(dominant, np.where(l > 0)) 
+            dominant = np.intersect1d(dominant, np.where(l > 0))
         dominant_neuron_idx.append(dominant)
 
     return dominant_neuron_idx
@@ -83,7 +84,7 @@ def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_
             test_idx += 1
         layer_idx += 1
 
-    dominant_neuron_idx= [[] for i in range(len(model.layers))]
+    dominant_neuron_idx= [[] for i in range(len(layer_outs))]
 
     for i in range(len(scores)):
         for j in range(len(scores[i])):
@@ -131,7 +132,7 @@ def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_out
         layer_idx += 1
 
 
-    dominant_neuron_idx= [[] for i in range(len(model.layers))]
+    dominant_neuron_idx= [[] for i in range(len(layer_outs))]
 
     for i in range(len(scores)):
         for j in range(len(scores[i])):
