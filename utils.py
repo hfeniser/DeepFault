@@ -134,6 +134,18 @@ def save_perturbed_test(x_perturbed, y_perturbed, filename):
     return
 
 
+def save_perturbed_test_groups(x_perturbed, y_perturbed, filename, group_index):
+    # Write:
+    # save X
+    with h5py.File(filename + '_perturbations.h5', 'w') as hf:
+        group = hf.create_group('group'+group_index)
+        group.create_dataset("x_perturbed", data=x_perturbed)
+        group.create_dataset("y_perturbed", data=y_perturbed)
+
+    return
+
+
+
 def load_perturbed_test(filename):
     # read X
     with h5py.File(filename + '_perturbations_x.h5', 'r') as hf:
@@ -144,3 +156,12 @@ def load_perturbed_test(filename):
         y_perturbed = hf["y_perturbed"][:]
 
     return x_perturbed, y_perturbed
+
+
+def load_perturbed_test_groups(filename, group_index):
+    with h5py.File(filename + '_perturbations_y.h5', 'r') as hf:
+        group = hf.get('group'+group_index)
+        x_perturbed = group.get('x_perturbed')
+        y_perturbed = group.get('y_perturbed')
+
+        return x_perturbed, y_perturbed
