@@ -64,7 +64,7 @@ def train_model(args):
 
     directory = "neural_networks/"
     model_name = directory + 'mnist_test_model_' + str(num_hidden) + '_' + str(num_neuron)
-    model_filename = directory + model_name + ".json"
+    model_filename =  model_name + ".json"
     weights_filename = model_name + ".h5"
 
     # serialize model to JSON
