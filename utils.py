@@ -7,6 +7,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from math import ceil
 import matplotlib.pyplot as plt
 import numpy as np
+import h5py
 
 
 def load_data(one_hot=True):
@@ -119,3 +120,27 @@ def get_dummy_dominants(model_name):
     dominant = {x: random.sample(range(model.layers[x].output_shape[1]), 2) for x in range(1, len(model.layers) - 1)}
 
     return dominant
+
+
+def save_perturbed_test(x_perturbed, y_perturbed, filename):
+    # save X
+    with h5py.File(filename + '_perturbations_x.h5', 'w') as hf:
+        hf.create_dataset("x_perturbed", data=x_perturbed)
+
+    #save Y
+    with h5py.File(filename + '_perturbations_y.h5', 'w') as hf:
+        hf.create_dataset("y_perturbed", data=y_perturbed)
+
+    return
+
+
+def load_perturbed_test(filename):
+    # read X
+    with h5py.File(filename + '_perturbations_x.h5', 'r') as hf:
+        x_perturbed = hf["x_perturbed"][:]
+
+    # read Y
+    with h5py.File(filename + '_perturbations_y.h5', 'r') as hf:
+        y_perturbed = hf["y_perturbed"][:]
+
+    return x_perturbed, y_perturbed
