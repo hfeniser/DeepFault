@@ -117,10 +117,10 @@ def run_lp(model_name=None, dominant=None, correct_classifications=None):
                         constraint[1].append(0)
 
                 rhs.append(0)
-                if j not in dominant[i]:  #not (i == target_layer and j == target_neuron_index):
+                if j not in dominant[i]:  # not (i == target_layer and j == target_neuron_index):
                     constraint[0].append("x_"+str(i)+"_"+str(j))
                     constraint[1].append(-1)      # deactivated X11==> 0X00+001x01+... -x11= 0 ==> x11=0
-                    constraint_senses.append("E")  # activated X11  ==> w00X00+w01x01+...-x11 = 0 ==> w00X00+w01x01+...= x11
+                    constraint_senses.append("E")  # activ X11  ==> w00X00+w01x01+...-x11 = 0==>w00X00+w01x01+...= x11
                     constraint_names.append("eq:"+"x_"+str(i)+"_"+str(j))
                 else:
                     # if it among the dominant neurons, we ignore completely the previous value of the
