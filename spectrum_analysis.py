@@ -115,9 +115,9 @@ def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_out
     return dominant_neuron_idx
 
 
-def fine_intersection_analysis(predictions, true_classes,
+def fine_intersection_analysis(model, predictions, true_classes,
                                prediction_tobe_analyzed,
-                               true_tobe_analyzed=None, model):
+                               true_tobe_analyzed=None):
 
     error_class_to_input= []
     idx = 1

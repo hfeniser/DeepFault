@@ -26,13 +26,13 @@ def coarse_weighted_analysis(correct_classification_idx, misclassification_idx, 
             if scores[i][j] > 5:
                 dominant_neuron_idx[i].append(j)
 
-    print dominant_neuron_idx
+    print(dominant_neuron_idx)
 
     return dominant_neuron_idx
 
 
 
-def fine_weighted_analysis(predictions, true_classes, prediction_tobe_analyzed, true_tobe_analyzed=None, model):
+def fine_weighted_analysis(model, predictions, true_classes, prediction_tobe_analyzed, true_tobe_analyzed=None):
 
     error_class_to_input= []
     idx = 1
@@ -72,6 +72,6 @@ def fine_weighted_analysis(predictions, true_classes, prediction_tobe_analyzed, 
             if scores[i][j] > 5:
                 dominant_neuron_idx[i].append(j)
 
-    print dominant_neuron_idx
+    print(dominant_neuron_idx)
 
     return dominant_neuron_idx
