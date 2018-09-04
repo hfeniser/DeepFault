@@ -23,7 +23,7 @@ def coarse_weighted_analysis(correct_classification_idx, misclassification_idx, 
 
     for i in len(scores):
         for j in len(scores[i]):
-            if scores[i][j] > 5:
+            if scores[i][j] > 5: #score threshold, what's the correct value? maybe can be found through experiments?
                 dominant_neuron_idx[i].append(j)
 
     print(dominant_neuron_idx)

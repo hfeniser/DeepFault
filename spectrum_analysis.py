@@ -7,6 +7,7 @@ from utils import get_layer_outs
 np.random.seed(7)
 
 def coarse_intersection_analysis(correct_classification_idx, misclassification_idx, layer_outs):
+    dominant_neuron_idx = []
 
     for l_out in layer_outs[1:]:
         dominant = range(len(l_out[0][0]))
@@ -28,10 +29,10 @@ def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_
     num_cs = []
     num_us = []
     for l_out in layer_outs[1:]:
-        num_cf.append(np.zeros(len(l_out[0][0])))
-        num_uf.append(np.zeros(len(l_out[0][0])))
-        num_cs.append(np.zeros(len(l_out[0][0])))
-        num_us.append(np.zeros(len(l_out[0][0])))
+        num_cf.append(np.zeros(len(l_out[0][0])))  # covered (activated) and failed
+        num_uf.append(np.zeros(len(l_out[0][0])))  # uncovered (not activated) and failed
+        num_cs.append(np.zeros(len(l_out[0][0])))  # covered and succeeded
+        num_us.append(np.zeros(len(l_out[0][0])))  # uncovered and succeeded
         scores.append(np.zeros(len(l_out[0][0])))
 
     layer_idx = 0
@@ -61,7 +62,7 @@ def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_
         for j in range(len(scores[i])):
             score =  float(float(num_cf[i][j]) / (num_cf[i][j] + num_uf[i][j])) / (float(num_cf[i][j]) / (num_cf[i][j] + num_uf[i][j]) + float(num_cs[i][j]) / (num_cs[i][j] + num_us[i][j]))
             scores[i][j] = score
-            if score > 0.6:
+            if score > 0.6:  # threshold for identifying the dominant neurons. Deciding its value via experimentation?
                 dominant_neuron_idx[i].append(j)
 
     return dominant_neuron_idx
@@ -109,7 +110,7 @@ def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_out
         for j in range(len(scores[i])):
             score = float(num_cf[i][j]) / ((num_cf[i][j] + num_uf[i][j]) * (num_cf[i][j] + num_cs[i][j])) **(.5)
             scores[i][j] = score
-            if score > 0.6:
+            if score > 0.6: # threshold for identifying the dominant neurons. Deciding its value via experimentation?
                 dominant_neuron_idx[i].append(j)
 
     return dominant_neuron_idx
