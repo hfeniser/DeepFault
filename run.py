@@ -9,7 +9,8 @@ from lp import run_lp
 from os import path
 from spectrum_analysis import *
 from weighted_analysis import *
-
+from utils import save_perturbed_test, save_perturbed_test_groups
+from datetime import datetime
 
 def parse_arguments():
     """
@@ -89,6 +90,10 @@ if __name__ == "__main__":
     else:
         model_name = train_model(args)
 
+    # define experiment name
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    experiment_name = model_name + "_" + timestamp
+
     # 2)test the model and receive the indexes of correct and incorrect classifications
     # Also provide output of each neuron in each layer for tst input x.
     if not args['test'] is None and args['test']:
@@ -118,5 +123,9 @@ if __name__ == "__main__":
     # and will produce new inputs based on the correct classifications (from the testing set)
     # that exercise the dominant neurons
     # 4) Run LP
-    # run_lp(model_name, dominant_neuron_idx, correct_classifications)
+    x_perturbed, y_perturbed = run_lp(model_name, dominant_neuron_idx, correct_classifications)
+
+    #save perturtbed inputs
+    save_perturbed_test_groups(x_perturbed, y_perturbed, experiment_name, 1)
+
 

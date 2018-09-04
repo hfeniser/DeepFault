@@ -1,4 +1,4 @@
-from utils import load_data, load_model, get_layer_outs, show_image, save_perturbed_test
+from utils import load_data, load_model, get_layer_outs, show_image
 import cplex
 import numpy as np
 
@@ -24,6 +24,7 @@ def run_lp(model_name=None, dominant=None, correct_classifications=None):
     # for all the testing set
     for test_index in range(0, len(x_test)):
 
+        # if this testing input has been classified correctly, generate perturbations
         if test_index not in correct_classifications:
             continue
 
@@ -37,7 +38,8 @@ def run_lp(model_name=None, dominant=None, correct_classifications=None):
         # What do we do here?
         layer_outs = get_layer_outs(model, x)
 
-        print("Dominant ", dominant)
+        # print("Dominant ", dominant)
+
         # Find max hidden layer with dominant neurons
         hidden_layers = [l for l in dominant.keys() if dominant[l]]
         target_layer = max(hidden_layers)
@@ -188,7 +190,7 @@ def run_lp(model_name=None, dominant=None, correct_classifications=None):
 
         # append perturbed input
         if (d>0 and d<1):
-            print ("perturbation for ", test_index)
+            print("perturbation for ", test_index)
             x_perturbed.append(new_x)
             y_perturbed.append(y_test[test_index])
 
@@ -197,8 +199,7 @@ def run_lp(model_name=None, dominant=None, correct_classifications=None):
             show_image(np.asarray(new_x).reshape(dims, dims))
 
         if len(x_perturbed) > 5:
-            save_perturbed_test(x_perturbed, y_perturbed, model_name)
-            return
+            return x_perturbed, y_perturbed
 
 def run_lp_old():
     """
