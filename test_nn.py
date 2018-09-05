@@ -37,7 +37,7 @@ def test_model(model, X_test, Y_test):
     # Find correct classifications and misclassifications
     correct_classifications = []
     incorrect_classifications = []
-    for i in range(1, len(classifications)):
+    for i in range(0, len(classifications)):
         if classifications[i] == 0:
             correct_classifications.append(i)
         else:
