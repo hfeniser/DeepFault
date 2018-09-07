@@ -74,9 +74,9 @@ def train_model(args, X_train=None, Y_train=None, X_test=None, Y_test=None):
     model.fit(X_train, Y_train, batch_size=32, epochs=10, verbose=1)
 
     # Evaluate the model
-    if (X_test is not None and Y_test is not None):
-        score = model.evaluate(X_test, Y_test, verbose=0)
-        print('[loss, accuracy] -> ' + str(score))
+    # if (X_test is not None and Y_test is not None):
+    #     score = model.evaluate(X_test, Y_test, verbose=0)
+    #     print('[loss, accuracy] -> ' + str(score))
 
     model_name = __save_trained_model(model, num_hidden, num_neuron)
 

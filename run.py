@@ -9,7 +9,7 @@ from lp import run_lp
 from os import path
 from spectrum_analysis import *
 from weighted_analysis import *
-from utils import create_experiment_dir, get_dummy_dominants, save_perturbed_test_groups, load_perturbed_test_groups
+from utils import create_experiment_dir, save_perturbed_test_groups, load_perturbed_test_groups, save_dominant_neurons
 from utils import load_classifications, save_classifications, save_layer_outs, load_layer_outs
 from sklearn.model_selection import train_test_split
 
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     experiment_name = create_experiment_dir(experiment_path, model_name)
 
     # test set becomes validation set (temporary)
-    test_model(model, X_test, Y_test)
+    # test_model(model, X_test, Y_test)
     X_val, Y_val = X_test, Y_test
 
     ####################
@@ -142,13 +142,16 @@ if __name__ == "__main__":
         dominant_neuron_idx = coarse_weighted_analysis(correct_classifications, misclassifications, layer_outs)
     else:
         print('Please enter a valid approach to localize dominant neurons.')
+        exit(-1)
+    filename = experiment_name + "_" + args['approach']
+    save_dominant_neurons(dominant_neuron_idx, filename, group_index)
 
     # Assume these are generated in Step3
-    if not dominant_neuron_idx:
-        dominant = get_dummy_dominants(model)
-        print("no fault localisation approach specified. Generating random dominant neurons", dominant_neuron_idx)
-    else:
-        dominant = {x: dominant_neuron_idx[x - 1] for x in range(1, len(dominant_neuron_idx) + 1)}
+    # if not dominant_neuron_idx:
+    #     dominant = get_dummy_dominants(model)
+    #     print("no fault localisation approach specified. Generating random dominant neurons", dominant_neuron_idx)
+    # else:
+    dominant = {x: dominant_neuron_idx[x - 1] for x in range(1, len(dominant_neuron_idx) + 1)}
 
     ####################
     # 4) Run LP

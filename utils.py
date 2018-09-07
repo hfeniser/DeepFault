@@ -257,3 +257,29 @@ def load_layer_outs(filename, group_index):
         # layer outs to the caller function
         print("Layer outs loaded from ", filename)
         return layer_outs
+
+
+def save_dominant_neurons(dominant_neurons, filename, group_index):
+    filename = filename + '_dominant_neurons.h5'
+    with h5py.File(filename, 'w') as hf:
+        group = hf.create_group('group'+str(group_index))
+        for i in range(len(dominant_neurons)):
+            group.create_dataset("dominant_neurons"+str(i), data=dominant_neurons[i])
+
+    print("Dominant neurons saved in ", filename)
+    return
+
+
+def load_dominant_neurons(filename, group_index):
+    filename = filename + '_dominant_neurons.h5'
+    try:
+        with h5py.File(filename, 'r') as hf:
+            group = hf.get('group' + str(group_index))
+            dominant_neurons = group.get('_dominant_neurons').value
+
+            print("Dominant neurons  loaded from ", filename)
+            return dominant_neurons
+    except IOError as error:
+        print("Could not open file: ", filename)
+        traceback.print_exc()
+        sys.exit(-1)
