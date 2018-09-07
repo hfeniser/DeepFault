@@ -1,4 +1,4 @@
-from utils import load_data, load_model, get_layer_outs, show_image
+from utils import load_data, get_layer_outs, show_image
 import cplex
 import numpy as np
 

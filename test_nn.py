@@ -1,4 +1,4 @@
-from utils import load_data, load_model, calculate_prediction_metrics, get_layer_outs
+from utils import calculate_prediction_metrics, get_layer_outs
 import numpy as np
 
 

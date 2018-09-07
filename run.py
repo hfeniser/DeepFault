@@ -9,13 +9,19 @@ from lp import run_lp
 from os import path
 from spectrum_analysis import *
 from weighted_analysis import *
-from utils import save_perturbed_test_groups, get_dummy_dominants, load_data
 from datetime import datetime
+from utils import create_experiment_dir, save_perturbed_test_groups, load_perturbed_test_groups, save_dominant_neurons
+from utils import load_classifications, save_classifications, save_layer_outs,
+load_layer_outs, load_data
 from sklearn.model_selection import train_test_split
 from saliency_map_analysis import saliency_map_analysis
 
 #Provide a seed for reproducability
 seed = 7
+experiment_path = "data"
+model_path = "neural_networks"
+group_index = 1
+
 
 def parse_arguments():
     """
@@ -32,11 +38,13 @@ def parse_arguments():
 
     # add new command-line arguments
     parser.add_argument("-V", "--version", help="show program version",    action="store_true")
-    parser.add_argument("-L", "--layers",  help="number of hidden layers")
+    parser.add_argument("-H", "--hidden",  help="number of hidden layers")
     parser.add_argument("-N", "--neurons", help="number of neurons in each hidden layer")
     parser.add_argument("-M", "--model",   help="the model to be loaded. When set, the specified model is used")
     parser.add_argument("-T", "--test",   help="the model to be loaded. When set, the specified model is used")
     parser.add_argument("-A", "--approach", help="the approach to be employed to localize dominant neurons")
+    parser.add_argument("-L", "--lp", help="whether to use linear programming to generate the perturbed inputs or" +
+                                           " the perturbed input file to be used")
 
     # parse command-line arguments
     args = parser.parse_args()
@@ -46,10 +54,10 @@ def parse_arguments():
     try:
         if args.version:
             print("this is myprogram version 0.1")
-        if args.layers:
+        if args.hidden:
             if isinstance(args.layers, int) or args.layers.isdigit():
-                value = int(args.layers)
-                args.layers = value
+                value = int(args.hidden)
+                args.hidden = value
                 print("The NN has %s hidden layers" % args.layers)
             else:
                 raise ValueError("%s is an invalid argument for the number of neurons in hidden layers" % args.layers)
@@ -81,81 +89,104 @@ def parse_arguments():
     return vars(args)
 
 
+
 if __name__ == "__main__":
     args = parse_arguments()
-    args['model'] = "neural_networks/mnist_test_model_10_10"
-    args['test'] = True
-    # args['approach'] = 'tarantula'
+
+    args['model'] = "mnist_test_model_10_10"
+    args['test'] = "mnist_test_model_10_10_2018-09-07 19:07:36"
+    args['approach'] = 'tarantula'
+    args['lp'] = "mnist_test_model_10_10_2018-09-07 19:18:30"
     # args['neurons'] = 10
     # args['layers'] = 10
 
+    ####################
     # 0) Load MNIST data
     X_train, Y_train, X_test, Y_test = load_data()
-    X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=1./6, random_state=seed)
 
+    X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=1/6.0, random_state=seed)
+
+
+    ####################
     # 1)train the neural network and save the network and its weights after the training
-    # Note: if the model is given as a command-line argument don't train it again
-    if args['model'] is not None:
-        model_name = args['model']
-        model = load_model(model_name)
-    else:
+    if args['model'] is None or args['model'] is True:
         model_name, model = train_model(args, X_train, Y_train, X_test, Y_test)
+    else:# if the model is given as a command-line argument don't train it again
+        model_name = args['model']
+        model = load_model(path.join(model_path, model_name))
 
-    # define experiment name
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    experiment_name = model_name + "_" + timestamp
 
+    experiment_name = create_experiment_dir(experiment_path, model_name)
+
+    # test set becomes validation set (temporary)
+    # test_model(model, X_test, Y_test)
+    X_val, Y_val = X_test, Y_test
+
+    ####################
     # 2)test the model and receive the indexes of correct and incorrect classifications
-    # Also provide output of each neuron in each layer for tst input x.
-    if not args['test'] is None and args['test']:
-        correct_classifications, incorrect_classifications, layer_outs, model, predictions= test_model(model, X_val, Y_val)
+    # Also provide output of each neuron in each layer for test input x.
+    if args['test'] is None or args['test'] is True:
+        correct_classifications, misclassifications, layer_outs = test_model(model, X_val, Y_val)
+        save_classifications(correct_classifications, misclassifications, experiment_name, group_index)
+        save_layer_outs(layer_outs, experiment_name, group_index)
+    else:
+        filename = path.join(experiment_path, args['test'])
+        correct_classifications, misclassifications = load_classifications(filename, group_index)
+        layer_outs = load_layer_outs(filename, group_index)
 
-
-    # TODO: need to modify the scripts that perform the identification so that to match the workflow
-    # This function will receive the incorrect classifications and identify the dominant neurons for each layer
-    # 3) Identify dominant neurons
-    # e.g., weighted_analysis (correct_classifications, incorrect_classifications)
+    ####################
+    # 3) Receive the correct classifications  & misclassifications and identify the dominant neurons per layer
     dominant_neuron_idx = []
     if args['approach'] == 'intersection':
-        dominant_neuron_idx = coarse_intersection_analysis(correct_classifications, incorrect_classifications, layer_outs)
+        dominant_neuron_idx = coarse_intersection_analysis(correct_classifications, misclassifications, layer_outs)
     elif args['approach'] == 'tarantula':
-        dominant_neuron_idx = tarantula_analysis(correct_classifications, incorrect_classifications, layer_outs)
+        dominant_neuron_idx = tarantula_analysis(correct_classifications, misclassifications, layer_outs)
     elif args['approach'] == 'ochiai':
-        dominant_neuron_idx = ochiai_analysis(correct_classifications, incorrect_classifications, layer_outs)
+        dominant_neuron_idx = ochiai_analysis(correct_classifications, misclassifications, layer_outs)
     elif args['approach'] == 'weighted':
         dominant_neuron_idx = coarse_weighted_analysis(correct_classifications, incorrect_classifications, layer_outs)
     elif args['approach'] == 'saliency':
-        print('hey')
         dominant_neuron_idx = saliency_map_analysis(correct_classifications,
                                                     incorrect_classifications,
                                                     layer_outs, model, predictions)
     else:
         print('Please enter a valid approach to localize dominant neurons.')
+         exit(-1)
+    filename = experiment_name + "_" + args['approach']
+    save_dominant_neurons(dominant_neuron_idx, filename, group_index)
 
-    print(dominant_neuron_idx)
-    exit()
 
     # Assume these are generated in Step3
-    # from utils import get_dummy_dominants
-    if not dominant_neuron_idx:
-        dominant = get_dummy_dominants(model)
-        print("no fault localisation approach specified. Generating random dominant neurons", dominant_neuron_idx)
-    else:
-        dominant = {x: dominant_neuron_idx[x - 1] for x in range(1, len(dominant_neuron_idx) + 1)}
+    # if not dominant_neuron_idx:
+    #     dominant = get_dummy_dominants(model)
+    #     print("no fault localisation approach specified. Generating random dominant neurons", dominant_neuron_idx)
+    # else:
+    dominant = {x: dominant_neuron_idx[x - 1] for x in range(1, len(dominant_neuron_idx) + 1)}
 
-    # TODO: this function will receice the set of dominant neurons for each layer from Step 3
-    # and will produce new inputs based on the correct classifications (from the testing set)
-    # that exercise the dominant neurons
+    ####################
     # 4) Run LP
-    x_perturbed, y_perturbed = run_lp(model, X_val, Y_val, dominant, correct_classifications)
+    # Receive the set of dominant neurons for each layer from Step 3 # and will produce new inputs based on
+    # the correct classifications (from the testing set) that exercise the dominant neurons
+    if args['lp'] is None or args['lp'] is True:
+        x_perturbed, y_perturbed = run_lp(model, X_val, Y_val, dominant, correct_classifications)
+    else:
+        filename = path.join(experiment_path, args['lp'])
+        x_perturbed, y_perturbed = load_perturbed_test_groups(filename, group_index)
 
     # reshape them into the expected format
     x_perturbed = np.asarray(x_perturbed).reshape(np.asarray(x_perturbed).shape[0], 1, 28, 28)#
     y_perturbed = np.asarray(y_perturbed).reshape(np.asarray(y_perturbed).shape[0], 10)#
 
+    ####################
     #save perturtbed inputs
-    save_perturbed_test_groups(x_perturbed, y_perturbed, experiment_name, 1)
+    if args['lp'] is None or args['lp'] is True:
+        save_perturbed_test_groups(x_perturbed, y_perturbed, experiment_name, group_index)
 
+    ####################
+    # retrain the model
     train_model_fault_localisation(model, x_perturbed, y_perturbed)
 
+    ####################
+    # retest the model
     test_model(model, X_test, Y_test)
+
