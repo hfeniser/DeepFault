@@ -9,7 +9,7 @@ from lp import run_lp
 from os import path
 from spectrum_analysis import *
 from weighted_analysis import *
-from utils import save_perturbed_test_groups, get_dummy_dominants
+from utils import save_perturbed_test_groups, get_dummy_dominants, load_data
 from datetime import datetime
 from sklearn.model_selection import train_test_split
 from saliency_map_analysis import saliency_map_analysis
