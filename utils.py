@@ -8,6 +8,10 @@ from math import ceil
 import matplotlib.pyplot as plt
 import numpy as np
 import h5py
+from datetime import datetime
+from os import path, makedirs
+import traceback
+
 
 
 def load_data(one_hot=True):
@@ -48,6 +52,8 @@ def load_model(model_name):
     model.compile(loss='categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
+
+    print("Model structure loaded from ", model_name)
     return model
 
 
@@ -134,7 +140,6 @@ def save_perturbed_test(x_perturbed, y_perturbed, filename):
 
 
 def save_perturbed_test_groups(x_perturbed, y_perturbed, filename, group_index):
-    # Write:
     # save X
     with h5py.File(filename + '_perturbations.h5', 'w') as hf:
         group = hf.create_group('group'+str(group_index))
@@ -142,7 +147,6 @@ def save_perturbed_test_groups(x_perturbed, y_perturbed, filename, group_index):
         group.create_dataset("y_perturbed", data=y_perturbed)
 
     return
-
 
 
 def load_perturbed_test(filename):
