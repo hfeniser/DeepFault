@@ -50,31 +50,34 @@ class JacobianSaliency(object):
 
         return saliency_map
 
-X_train, y_train, X_test, y_test = load_data()
-model = load_model('simple_mnist_fnn')
 
-predictions = model.predict(X_test)
-idx = 0
-for pred, crrct in zip(predictions, y_test):
-    predicted_class = np.unravel_index(pred.argmax(), pred.shape)[0]
-    true_class = np.unravel_index(crrct.argmax(), crrct.shape)[0]
-    if predicted_class != true_class:
-        print('predicted: ' + str( predicted_class))
-        print('true: ' + str(true_class))
-        break
-    idx += 1
+def saliency_map_analysis(correct_classification_idx, misclassification_idx, layer_outs, model, predictions):
 
-tst = get_layer_outs(model,[X_test[idx]])
-tst = tst[3][0][0]
-tst = np.expand_dims(tst, axis=0)
+    scores = []
+    dominant_neuron_idx = []
+    for l_out in layer_outs:
+        scores.append(np.zeros(len(l_out[0][0])))
+        dominant_neuron_idx.append([])
 
-saliency = JacobianSaliency(model, 5)
-saliency_map = saliency.get_saliency_map(tst, model, 5, 'increase')[0]
+    for layer_idx in range(1, len(layer_outs[1:])):
+        test_idx = 0
+        print(layer_idx)
+        for l in layer_outs[layer_idx][0]:
+            if test_idx not in misclassification_idx:
+                test_idx +=1
+                continue
 
-max_sal = max(saliency_map)
-max_ind = list(saliency_map).index(max_sal)
-print(max_sal)
-print(max_ind)
+            saliency = JacobianSaliency(model, layer_idx)
+            saliency_map = saliency.get_saliency_map(np.expand_dims(l, axis=0), model, predictions[test_idx], 'increase')[0]
 
+            max_sal = max(saliency_map)
+            max_ind = list(saliency_map).index(max_sal)
+            scores[layer_idx][max_ind] += 1
+            test_idx += 1
 
-
+    print scores
+    exit()
+    for i in range(len(scores)):
+        for j in range(len(scores[i])):
+            if scores[i][j] > 200: #score threshold, what's the correct value? maybe can be found through experiments?
+                dominant_neuron_idx[i].append(j)

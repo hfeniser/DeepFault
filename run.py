@@ -12,6 +12,7 @@ from weighted_analysis import *
 from utils import save_perturbed_test_groups, get_dummy_dominants
 from datetime import datetime
 from sklearn.model_selection import train_test_split
+from saliency_map_analysis import saliency_map_analysis
 
 #Provide a seed for reproducability
 seed = 7
@@ -84,13 +85,13 @@ if __name__ == "__main__":
     args = parse_arguments()
     args['model'] = "neural_networks/mnist_test_model_10_10"
     args['test'] = True
-    args['approach'] = 'tarantula'
+    # args['approach'] = 'tarantula'
     # args['neurons'] = 10
     # args['layers'] = 10
 
     # 0) Load MNIST data
     X_train, Y_train, X_test, Y_test = load_data()
-    X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=1/6, random_state=seed)
+    X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=1./6, random_state=seed)
 
     # 1)train the neural network and save the network and its weights after the training
     # Note: if the model is given as a command-line argument don't train it again
@@ -104,12 +105,10 @@ if __name__ == "__main__":
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     experiment_name = model_name + "_" + timestamp
 
-    test_model(model, X_test, Y_test)
-
     # 2)test the model and receive the indexes of correct and incorrect classifications
     # Also provide output of each neuron in each layer for tst input x.
     if not args['test'] is None and args['test']:
-        correct_classifications, incorrect_classifications, layer_outs = test_model(model, X_val, Y_val)
+        correct_classifications, incorrect_classifications, layer_outs, model, predictions= test_model(model, X_val, Y_val)
 
 
     # TODO: need to modify the scripts that perform the identification so that to match the workflow
@@ -125,9 +124,16 @@ if __name__ == "__main__":
         dominant_neuron_idx = ochiai_analysis(correct_classifications, incorrect_classifications, layer_outs)
     elif args['approach'] == 'weighted':
         dominant_neuron_idx = coarse_weighted_analysis(correct_classifications, incorrect_classifications, layer_outs)
+    elif args['approach'] == 'saliency':
+        print('hey')
+        dominant_neuron_idx = saliency_map_analysis(correct_classifications,
+                                                    incorrect_classifications,
+                                                    layer_outs, model, predictions)
     else:
         print('Please enter a valid approach to localize dominant neurons.')
 
+    print(dominant_neuron_idx)
+    exit()
 
     # Assume these are generated in Step3
     # from utils import get_dummy_dominants

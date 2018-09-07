@@ -23,7 +23,6 @@ def test_model(model, X_test, Y_test):
 
     # Make predictions
     Y_pred = model.predict(X_test)
-    # print(Y_pred)
 
     # Calculate classification report and confusion matrix
     calculate_prediction_metrics(Y_test, Y_pred, score)
@@ -45,7 +44,7 @@ def test_model(model, X_test, Y_test):
 
     print("Testing done!\n")
 
-    return correct_classifications, incorrect_classifications, layer_outs
+    return correct_classifications, incorrect_classifications, layer_outs, model, Y_pred_class
 
 
 if __name__ == "__main__":
