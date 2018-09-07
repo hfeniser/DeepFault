@@ -139,16 +139,6 @@ def save_perturbed_test(x_perturbed, y_perturbed, filename):
     return
 
 
-def save_perturbed_test_groups(x_perturbed, y_perturbed, filename, group_index):
-    # save X
-    with h5py.File(filename + '_perturbations.h5', 'w') as hf:
-        group = hf.create_group('group'+str(group_index))
-        group.create_dataset("x_perturbed", data=x_perturbed)
-        group.create_dataset("y_perturbed", data=y_perturbed)
-
-    return
-
-
 def load_perturbed_test(filename):
     # read X
     with h5py.File(filename + '_perturbations_x.h5', 'r') as hf:
@@ -161,6 +151,19 @@ def load_perturbed_test(filename):
     return x_perturbed, y_perturbed
 
 
+def save_perturbed_test_groups(x_perturbed, y_perturbed, filename, group_index):
+    # save X
+    filename = filename + '_perturbations.h5'
+    with h5py.File(filename, 'w') as hf:
+        group = hf.create_group('group'+str(group_index))
+        group.create_dataset("x_perturbed", data=x_perturbed)
+        group.create_dataset("y_perturbed", data=y_perturbed)
+
+    print("Classifications saved in ", filename)
+
+    return
+
+
 def load_perturbed_test_groups(filename, group_index):
     with h5py.File(filename + '_perturbations.h5', 'r') as hf:
         group = hf.get('group' + str(group_index))
@@ -168,3 +171,78 @@ def load_perturbed_test_groups(filename, group_index):
         y_perturbed = group.get('y_perturbed').value
 
         return x_perturbed, y_perturbed
+
+
+def create_experiment_dir(experiment_path, model_name):
+    # define experiment name
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    experiment_name = path.join(experiment_path, model_name + "_" + timestamp)
+
+    if not path.exists(experiment_path):
+        makedirs(experiment_path)
+
+    if not path.exists(path.join(experiment_path, experiment_name)):
+        makedirs(path.join(experiment_path, experiment_name))
+
+    return experiment_name
+
+
+def save_classifications(correct_classifications, misclassifications, filename, group_index):
+    filename = filename + '_classifications.h5'
+    with h5py.File(filename, 'w') as hf:
+        group = hf.create_group('group'+str(group_index))
+        group.create_dataset("correct_classifications", data=correct_classifications)
+        group.create_dataset("misclassifications", data=misclassifications)
+
+    print("Classifications saved in ", filename)
+    return
+
+
+def load_classifications(filename, group_index):
+    filename = filename + '_classifications.h5'
+    try:
+        with h5py.File(filename, 'r') as hf:
+            group = hf.get('group' + str(group_index))
+            correct_classifications = group.get('correct_classifications').value
+            misclassifications = group.get('misclassifications').value
+
+            print("Classifications loaded from ", filename)
+            return correct_classifications, misclassifications
+    except (IOError) as error:
+        print("Could not open file: ", filename)
+        traceback.print_exc()
+        sys.exit(-1)
+
+
+def save_layer_outs(layer_outs, filename, group_index):
+    filename = filename + '_layer_outs.h5'
+    with h5py.File(filename, 'w') as hf:
+        group = hf.create_group('group'+str(group_index))
+        for i in range(len(layer_outs)):
+            group.create_dataset("layer_outs_"+str(i), data=layer_outs[i])
+
+    print("Layer outs saved in ", filename)
+    return
+
+
+def load_layer_outs(filename, group_index):
+    filename = filename + '_layer_outs.h5'
+    try:
+        with h5py.File(filename, 'r') as hf:
+            group = hf.get('group' + str(group_index))
+            i = 0
+            layer_outs = []
+            while True:
+                layer_outs.append(group.get('layer_outs_'+str(i)).value)
+                i += 1
+
+    except (IOError) as error:
+        print("Could not open file: ", filename)
+        traceback.print_exc()
+        sys.exit(-1)
+    except (AttributeError) as error:
+        # because we don't know the exact dimensions (number of layers of our network)
+        # we leave it to iterate until it throws an attribute error, and then return
+        # layer outs to the caller function
+        print("Layer outs loaded from ", filename)
+        return layer_outs

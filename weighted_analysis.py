@@ -25,7 +25,7 @@ def coarse_weighted_analysis(correct_classification_idx, misclassification_idx, 
 
     for i in range(len(scores)):
         for j in range(len(scores[i])):
-            if scores[i][j] > 200: #score threshold, what's the correct value? maybe can be found through experiments?
+            if scores[i][j] > 200:  # TODO: Threshold? what's the correct value? maybe can be found through experiments?
                 dominant_neuron_idx[i].append(j)
 
     return dominant_neuron_idx[1:-1]
@@ -69,7 +69,7 @@ def fine_weighted_analysis(model, predictions, true_classes, prediction_tobe_ana
 
     for i in len(scores):
         for j in len(scores[i]):
-            if scores[i][j] > 5:
+            if scores[i][j] > 5: # TODO: threshold?
                 dominant_neuron_idx[i].append(j)
 
     print(dominant_neuron_idx)

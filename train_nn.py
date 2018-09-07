@@ -19,7 +19,7 @@ def __save_trained_model(model=None, num_hidden=None, num_neuron=None):
 
     # serialize weights to HDF5
     model.save_weights(weights_filename)
-    print("Model saved to disk with name: " + model_name)
+    print("Model saved at: " + model_name)
 
     return model_name
 
@@ -32,7 +32,7 @@ def train_model(args, X_train=None, Y_train=None, X_test=None, Y_test=None):
     :return:
     """
 
-    num_hidden = None if args == None else args['layers']
+    num_hidden = None if args == None else args['hidden']
     num_neuron = None if args == None else args['neurons']
 
     if python_version == 2 :
@@ -80,7 +80,7 @@ def train_model(args, X_train=None, Y_train=None, X_test=None, Y_test=None):
 
     model_name = __save_trained_model(model, num_hidden, num_neuron)
 
-    print("Training done\n")
+    print("Training done")
 
     return model_name, model
 
