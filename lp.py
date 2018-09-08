@@ -136,7 +136,7 @@ def run_lp(model, X_val, Y_val, dominant, correct_classifications):
                 constraints.append(relu_constraint)
                 rhs.append(0)
 
-                if layer_outs[i][0][0][j] > 0:
+                if layer_outs[i][0][0][j] > 0 or j in dominant[i]:
                     constraint_senses.append("G")
                 else:
                     constraint_senses.append("L")
