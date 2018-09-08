@@ -35,16 +35,16 @@ def test_model(model, X_test, Y_test):
 
     # Find correct classifications and misclassifications
     correct_classifications = []
-    incorrect_classifications = []
+    misclassifications = []
     for i in range(0, len(classifications)):
         if classifications[i] == 0:
             correct_classifications.append(i)
         else:
-            incorrect_classifications.append(i)
+            misclassifications.append(i)
 
     print("Testing done!\n")
 
-    return correct_classifications, incorrect_classifications, layer_outs, model, Y_pred_class
+    return correct_classifications, misclassifications, layer_outs, Y_pred_class
 
 
 if __name__ == "__main__":

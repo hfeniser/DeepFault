@@ -194,7 +194,7 @@ def run_lp(model, X_val, Y_val, dominant, correct_classifications):
             # show_image(np.asarray(flatX).reshape(dims, dims))
             # show_image(np.asarray(new_x).reshape(dims, dims))
 
-        if len(x_perturbed) > 200:
+        if len(x_perturbed) > 1:
             return x_perturbed, y_perturbed
 
     return x_perturbed, y_perturbed

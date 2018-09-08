@@ -9,10 +9,8 @@ from lp import run_lp
 from os import path
 from spectrum_analysis import *
 from weighted_analysis import *
-from datetime import datetime
 from utils import create_experiment_dir, save_perturbed_test_groups, load_perturbed_test_groups, save_dominant_neurons
-from utils import load_classifications, save_classifications, save_layer_outs,
-load_layer_outs, load_data
+from utils import load_classifications, save_classifications, save_layer_outs, load_layer_outs, load_data
 from sklearn.model_selection import train_test_split
 from saliency_map_analysis import saliency_map_analysis
 
@@ -92,7 +90,6 @@ def parse_arguments():
 
 if __name__ == "__main__":
     args = parse_arguments()
-
     args['model'] = "mnist_test_model_10_10"
     args['test'] = "mnist_test_model_10_10_2018-09-07 19:07:36"
     args['approach'] = 'tarantula'
@@ -126,7 +123,7 @@ if __name__ == "__main__":
     # 2)test the model and receive the indexes of correct and incorrect classifications
     # Also provide output of each neuron in each layer for test input x.
     if args['test'] is None or args['test'] is True:
-        correct_classifications, misclassifications, layer_outs = test_model(model, X_val, Y_val)
+        correct_classifications, misclassifications, layer_outs, y_predictions = test_model(model, X_val, Y_val)
         save_classifications(correct_classifications, misclassifications, experiment_name, group_index)
         save_layer_outs(layer_outs, experiment_name, group_index)
     else:
@@ -144,14 +141,12 @@ if __name__ == "__main__":
     elif args['approach'] == 'ochiai':
         dominant_neuron_idx = ochiai_analysis(correct_classifications, misclassifications, layer_outs)
     elif args['approach'] == 'weighted':
-        dominant_neuron_idx = coarse_weighted_analysis(correct_classifications, incorrect_classifications, layer_outs)
+        dominant_neuron_idx = coarse_weighted_analysis(correct_classifications, misclassifications, layer_outs)
     elif args['approach'] == 'saliency':
-        dominant_neuron_idx = saliency_map_analysis(correct_classifications,
-                                                    incorrect_classifications,
-                                                    layer_outs, model, predictions)
+        dominant_neuron_idx = saliency_map_analysis(correct_classifications, misclassifications, layer_outs, model, y_predictions)
     else:
         print('Please enter a valid approach to localize dominant neurons.')
-         exit(-1)
+        exit(-1)
     filename = experiment_name + "_" + args['approach']
     save_dominant_neurons(dominant_neuron_idx, filename, group_index)
 
@@ -189,4 +184,3 @@ if __name__ == "__main__":
     ####################
     # retest the model
     test_model(model, X_test, Y_test)
-

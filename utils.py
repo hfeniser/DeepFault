@@ -275,11 +275,19 @@ def load_dominant_neurons(filename, group_index):
     try:
         with h5py.File(filename, 'r') as hf:
             group = hf.get('group' + str(group_index))
-            dominant_neurons = group.get('_dominant_neurons').value
+            i = 0
+            dominant_neurons = []
+            while True:
+                dominant_neurons.append(group.get('dominant_neurons' + str(i)).value)
+                i += 1
 
-            print("Dominant neurons  loaded from ", filename)
-            return dominant_neurons
-    except IOError as error:
+    except (IOError) as error:
         print("Could not open file: ", filename)
         traceback.print_exc()
         sys.exit(-1)
+    except (AttributeError) as error:
+        # because we don't know the exact dimensions (number of layers of our network)
+        # we leave it to iterate until it throws an attribute error, and then return
+        # layer outs to the caller function
+        print("Dominant neurons  loaded from ", filename)
+        return dominant_neurons

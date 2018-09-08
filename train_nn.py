@@ -1,6 +1,5 @@
 from keras.models import Sequential
 from keras.layers import Dense, Flatten
-from utils import load_data
 from utils import get_python_version
 
 python_version = get_python_version()
@@ -8,7 +7,7 @@ python_version = get_python_version()
 
 def __save_trained_model(model=None, num_hidden=None, num_neuron=None):
     directory = "neural_networks/"
-    model_name = 'mnist_test_model_' + str(num_hidden) + '_' + str(num_neuron)
+    model_name = directory + 'mnist_test_model_' + str(num_hidden) + '_' + str(num_neuron)
     model_filename = directory + model_name + ".json"
     weights_filename = model_name + ".h5"
 
