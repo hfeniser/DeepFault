@@ -75,7 +75,7 @@ def saliency_map_analysis(correct_classification_idx, misclassification_idx, lay
             scores[layer_idx][max_ind] += 1
             test_idx += 1
 
-    print scores
+    print (scores)
     exit()
     for i in range(len(scores)):
         for j in range(len(scores[i])):
