@@ -9,7 +9,8 @@ from lp import run_lp
 from os import path
 from spectrum_analysis import *
 from weighted_analysis import *
-from utils import create_experiment_dir, save_perturbed_test_groups, load_perturbed_test_groups, save_dominant_neurons
+from utils import create_experiment_dir, save_perturbed_test_groups, load_perturbed_test_groups
+from utils import load_dominant_neurons, save_dominant_neurons
 from utils import load_classifications, save_classifications, save_layer_outs, load_layer_outs, load_data
 from sklearn.model_selection import train_test_split
 from saliency_map_analysis import saliency_map_analysis
@@ -91,9 +92,9 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
     args['model'] = "mnist_test_model_10_10"
-    args['test'] = "mnist_test_model_10_10_2018-09-07 19:07:36"
-    args['approach'] = 'tarantula'
-    args['lp'] = "mnist_test_model_10_10_2018-09-07 19:18:30"
+    args['test'] = True#"mnist_test_model_10_10_2018-09-07 19:07:36"
+    args['approach'] = "mnist_test_model_10_10_2018-09-08 23:54:52_tarantula"#'tarantula'
+    args['lp'] = True#"mnist_test_model_10_10_2018-09-07 19:18:30"
     # args['neurons'] = 10
     # args['layers'] = 10
 
@@ -144,11 +145,17 @@ if __name__ == "__main__":
         dominant_neuron_idx = coarse_weighted_analysis(correct_classifications, misclassifications, layer_outs)
     elif args['approach'] == 'saliency':
         dominant_neuron_idx = saliency_map_analysis(correct_classifications, misclassifications, layer_outs, model, y_predictions)
+    elif args['approach'] is not None:
+        filename = path.join(experiment_path, args['approach'])
+        dominant_neuron_idx = load_dominant_neurons(filename, group_index)
+        dominant_neurons_file_exists = True
     else:
         print('Please enter a valid approach to localize dominant neurons.')
         exit(-1)
+
     filename = experiment_name + "_" + args['approach']
-    save_dominant_neurons(dominant_neuron_idx, filename, group_index)
+    if not dominant_neurons_file_exists:
+        save_dominant_neurons(dominant_neuron_idx, filename, group_index)
 
 
     # Assume these are generated in Step3

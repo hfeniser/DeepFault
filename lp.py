@@ -37,7 +37,7 @@ def run_lp(model, X_val, Y_val, dominant, correct_classifications):
         # print("Dominant ", dominant)
 
         # Find max hidden layer with dominant neurons
-        hidden_layers = [l for l in dominant.keys() if dominant[l]]
+        hidden_layers = [l for l in dominant.keys() if len(dominant[l])>0]
         target_layer = max(hidden_layers)
 
         # Set the objective: d (the distance between the current and perturbed image) should be minimised
