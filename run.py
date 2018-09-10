@@ -114,7 +114,7 @@ if __name__ == "__main__":
         model = load_model(path.join(model_path, model_name))
 
 
-    experiment_name = create_experiment_dir(experiment_path, model_name)
+    experiment_name, timestamp = create_experiment_dir(experiment_path, model_name)
 
     # test set becomes validation set (temporary)
     # test_model(model, X_test, Y_test)
@@ -135,6 +135,7 @@ if __name__ == "__main__":
     ####################
     # 3) Receive the correct classifications  & misclassifications and identify the dominant neurons per layer
     dominant_neuron_idx = []
+    dominant_neurons_file_exists = False
     if args['approach'] == 'intersection':
         dominant_neuron_idx = coarse_intersection_analysis(correct_classifications, misclassifications, layer_outs)
     elif args['approach'] == 'tarantula':

@@ -195,7 +195,7 @@ def create_experiment_dir(experiment_path, model_name):
     if not path.exists(path.join(experiment_path, experiment_name)):
         makedirs(path.join(experiment_path, experiment_name))
 
-    return experiment_name
+    return experiment_name, timestamp
 
 
 def save_classifications(correct_classifications, misclassifications, filename, group_index):
