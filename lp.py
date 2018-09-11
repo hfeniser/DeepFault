@@ -308,8 +308,8 @@ def run_lp_revised(model, X_val, Y_val, dominant, correct_classifications):
                 # W_(i-1,k)X_(i-1,k) = Xij
                 if layer_outs[i][0][0][j] > 0 or j in dominant[i]:
                     constraint[0].append("x_"+str(i)+"_"+str(j))
-                    constraint[1].append(-1)      # deactivated X11==> 0X00+001x01+... -x11= 0 ==> x11=0
-                    constraint_senses.append("E")  # activ X11  ==> w00X00+w01x01+...-x11 = 0==>w00X00+w01x01+...= x11
+                    constraint[1].append(-1)      # w00X00+w01x01+... -x11= 0
+                    constraint_senses.append("E")
                     txt = ""
                     if layer_outs[i][0][0][j] > 0:
                         txt += "act-"
@@ -317,10 +317,9 @@ def run_lp_revised(model, X_val, Y_val, dominant, correct_classifications):
                         txt += "dom"
                     constraint_names.append(txt+":" + "x_" + str(i) + "_"+str(j))
                 else:
-                    # constraint_senses.append("L")  # activ X11  ==> w00X00+w01x01+...-x11 = 0==>w00X00+w01x01+...= x11
                     constraint[0].append("x_"+str(i)+"_"+str(j))
                     constraint[1].append(-1)
-                    constraint_senses.append("E")
+                    constraint_senses.append("L")  # w00X00+w01x01+... -x22 <= 0, x22=0, w00X00+w01x01+...<= 0
                     constraint_names.append("none:" + "x_" + str(i) + "_"+str(j))
 
                 rhs.append(0)  # append rhs
@@ -333,60 +332,23 @@ def run_lp_revised(model, X_val, Y_val, dominant, correct_classifications):
                 relu_constraint[0].append("x_" + str(i) + "_" + str(j))  # x11 >= 0 || x11 <= 0
                 relu_constraint[1].append(1)
                 constraints.append(relu_constraint)
-                rhs.append(0)
+
 
                 txt = "relu-"
                 if layer_outs[i][0][0][j] > 0 or j in dominant[i]:
                     constraint_senses.append("G")
-                    if layer_outs[i][0][0][j] > 0:
-                        txt += "act-"
                     if j in dominant[i]:
-                        txt += "dom"
-
+                        txt += "dom-"
+                        rhs.append(0.1)
+                    else:
+                        txt += "act"
+                        rhs.append(0)
                 else:
-                    constraint_senses.append("E")
+                    constraint_senses.append("E")  #x22=0
+                    rhs.append(0)
 
                 constraint_names.append(txt+":" + "x_" + str(i) + "_"+str(j))
 
-
-                #
-                # for k in range(model.layers[i-1].output_shape[1]):
-                #     constraint[0].append("x_"+str(i-1)+"_"+str(k))
-                #
-                #     if layer_outs[i][0][0][j] > 0 or j in dominant[i]:
-                #         # for some reason 0th layer has no weights thus we say i instead of i-1
-                #         constraint[1].append(float(model.layers[i].get_weights()[0][k][j]))
-                #     else:
-                #         constraint[1].append(0)
-                #
-                # rhs.append(0)
-                # if j not in dominant[i]:  # not (i == target_layer and j == target_neuron_index):
-                #     constraint[0].append("x_"+str(i)+"_"+str(j))
-                #     constraint[1].append(-1)      # deactivated X11==> 0X00+001x01+... -x11= 0 ==> x11=0
-                #     constraint_senses.append("E")  # activ X11  ==> w00X00+w01x01+...-x11 = 0==>w00X00+w01x01+...= x11
-                #     constraint_names.append("eq:"+"x_"+str(i)+"_"+str(j))
-                # else:
-                #     # if it among the dominant neurons, we ignore completely the previous value of the
-                #     # neuron (i.e., x_ij). Idea for future work --> neuron boundary
-                #     constraint_senses.append("G")  # w00X00+w01x01+.. >= 0;
-                #     constraint_names.append("act:"+"x_"+str(i)+"_"+str(j))
-                #
-                # constraints.append(constraint)
-                #
-                # ###########################
-                # # relu
-                # relu_constraint = [[], []]
-                # relu_constraint[0].append("x_" + str(i) + "_" + str(j))  # x11 >= 0 || x11 <= 0
-                # relu_constraint[1].append(1)
-                # constraints.append(relu_constraint)
-                # rhs.append(0)
-                #
-                # if layer_outs[i][0][0][j] > 0 or j in dominant[i]:
-                #     constraint_senses.append("G")
-                # else:
-                #     constraint_senses.append("L")
-                #
-                # constraint_names.append("relu:" + "x_" + str(i) + "_" + str(j))
 
         ############################
         ############################
@@ -439,7 +401,7 @@ def run_lp_revised(model, X_val, Y_val, dominant, correct_classifications):
             # show_image(np.asarray(flatX).reshape(dims, dims))
             # show_image(np.asarray(new_x).reshape(dims, dims))
 
-        if len(x_perturbed) >= 5:
+        if len(x_perturbed) >= 100:
             return x_perturbed, y_perturbed
 
     return x_perturbed, y_perturbed

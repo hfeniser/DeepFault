@@ -91,12 +91,12 @@ def parse_arguments():
 
 if __name__ == "__main__":
     args = parse_arguments()
-    args['model'] = "mnist_test_model_10_10"
-    args['test'] = True#"mnist_test_model_10_10_2018-09-07 19:07:36"
-    args['approach'] = "mnist_test_model_10_10_2018-09-08 23:54:52_tarantula"#'tarantula'
-    args['lp'] = True#"mnist_test_model_10_10_2018-09-07 19:18:30"
+    args['model'] = "mnist_test_model_5_10"
+    args['test'] = True#"mnist_test_model_5_10_2018-09-10 10:43:07"
+    args['approach'] = "tarantula"#"../data/mnist_test_model_5_10_2018-09-10 15:43:38_tarantula"#'tarantula'
+    args['lp'] = True#"../data/mnist_test_model_5_10_2018-09-10 15:43:38"
     # args['neurons'] = 10
-    # args['layers'] = 10
+    # args['layers'] = 5
 
     ####################
     # 0) Load MNIST data
@@ -171,7 +171,8 @@ if __name__ == "__main__":
     # Receive the set of dominant neurons for each layer from Step 3 # and will produce new inputs based on
     # the correct classifications (from the testing set) that exercise the dominant neurons
     if args['lp'] is None or args['lp'] is True:
-        x_perturbed, y_perturbed = run_lp(model, X_val, Y_val, dominant, correct_classifications)
+        from lp import run_lp_revised
+        x_perturbed, y_perturbed = run_lp_revised(model, X_val, Y_val, dominant, correct_classifications)
     else:
         filename = path.join(experiment_path, args['lp'])
         x_perturbed, y_perturbed = load_perturbed_test_groups(filename, group_index)
