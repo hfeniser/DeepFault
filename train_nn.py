@@ -90,7 +90,7 @@ if __name__ == "__main__":
     train_model(None)
 
 
-def train_model_fault_localisation(model, X_train, Y_train):
+def train_model_fault_localisation(model, X_train, Y_train, batch=32):
     """
     Method for retraining the neural network based on the perturbed inputs
     :param X_train: perturbed input
@@ -99,7 +99,7 @@ def train_model_fault_localisation(model, X_train, Y_train):
     """
 
     # Print information about the model
-    print(model.summary())
+    # print(model.summary())
 
     # Fit the model
-    model.fit(X_train, Y_train, batch_size=32, epochs=10, verbose=1)
+    model.fit(X_train, Y_train, batch_size=batch, epochs=10, verbose=1)
