@@ -13,6 +13,13 @@ from os import path, makedirs
 import traceback
 
 
+def load_MNIST():
+    path = "/scratch/sg778/DeepEntrust/tutorial/datasets/mnist.npz"
+    f = np.load(path)
+    x_train, y_train = f['x_train'], f['y_train']
+    x_test, y_test = f['x_test'], f['y_test']
+    f.close()
+    return (x_train, y_train), (x_test, y_test)
 
 def load_data(one_hot=True):
     """

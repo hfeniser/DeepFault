@@ -1,4 +1,4 @@
-from utils import load_data, get_layer_outs, show_image
+from utils import get_layer_outs
 import cplex
 import numpy as np
 
@@ -234,23 +234,31 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
     # Add constraints for the input (e.g., 28x28)
     # It should be very similar to the input image (d should be minimised)
     for i in range(0, len(flatX)):
+        import math
+        # layer = math.floor(i/28)
+        # neuron = i - layer * 28
+        x_name = "x_0_" + str(i)
         # x<=x0+d
-        constraints.append([[0, i + 1], [-1, 1]])
+        # constraints.append([[0, i + 1], [-1, 1]])
+        constraints.append([['d', x_name], [-1, 1]])
         rhs.append(float(flatX[i]))
         constraint_senses.append("L")
         constraint_names.append("x<=x" + str(i) + "+d")
         # x>=x0-d
-        constraints.append([[0, i + 1], [1, 1]])
+        # constraints.append([[0, i + 1], [1, 1]])
+        constraints.append([['d', x_name], [1, 1]])
         rhs.append(float(flatX[i]))
         constraint_senses.append("G")
         constraint_names.append("x>=x" + str(i) + "-d")
         # x<=1
-        constraints.append([[i + 1], [1]])
+        # constraints.append([[i + 1], [1]])
+        constraints.append([[x_name], [1]])
         rhs.append(float(1.0))
         constraint_senses.append("L")
         constraint_names.append("x<=1")
         # x>=0
-        constraints.append([[i + 1], [1]])
+        # constraints.append([[i + 1], [1]])
+        constraints.append([[x_name], [1]])
         rhs.append(float(0.0))
         constraint_senses.append("G")
         constraint_names.append("x>=0")
@@ -306,7 +314,7 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
                 constraint_senses.append("G")
                 if j in dominant[i]:
                     txt += "dom-"
-                    rhs.append(0.1)
+                    rhs.append(0.0)
                 else:
                     txt += "act"
                     rhs.append(0)
@@ -347,9 +355,10 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
         d = problem.solution.get_values("d")
         new_x = []
         for i in range(0, len(flatX)):
-            v = (problem.solution.get_values('x_0_' + str(i)))
+            x_name = 'x_0_' + str(i)
+            v = (problem.solution.get_values(x_name))
             if v < 0 or v > 1 or d <= 0 or d >= 1:
-                print("WRONG: v:", v, "\t d:", d)
+                print("WRONG: ", x_name, "\tv:", v, "\t d:", d)
                 return None
             new_x.append(v)
 
