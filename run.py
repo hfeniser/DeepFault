@@ -184,7 +184,8 @@ if __name__ == "__main__":
     ####################
     #save perturtbed inputs
     if args['lp'] is None or args['lp'] is True:
-        save_perturbed_test_groups(x_perturbed, y_perturbed, experiment_name, group_index)
+        filename = experiment_name + "_" + args['approach']
+        save_perturbed_test_groups(x_perturbed, y_perturbed, filename, group_index)
 
     ####################
     # retrain the model
@@ -193,3 +194,4 @@ if __name__ == "__main__":
     ####################
     # retest the model
     test_model(model, X_test, Y_test)
+    

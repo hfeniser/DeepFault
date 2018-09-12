@@ -29,6 +29,7 @@ def load_data(one_hot=True):
     """
     #Load data
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
+    # (X_train, y_train), (X_test, y_test) = load_MNIST()
 
     #Preprocess dataset
     #Normalization and reshaping of input.
@@ -172,7 +173,7 @@ def load_perturbed_test(filename):
 def save_perturbed_test_groups(x_perturbed, y_perturbed, filename, group_index):
     # save X
     filename = filename + '_perturbations.h5'
-    with h5py.File(filename, 'w') as hf:
+    with h5py.File(filename, 'a') as hf:
         group = hf.create_group('group'+str(group_index))
         group.create_dataset("x_perturbed", data=x_perturbed)
         group.create_dataset("y_perturbed", data=y_perturbed)
@@ -207,7 +208,7 @@ def create_experiment_dir(experiment_path, model_name):
 
 def save_classifications(correct_classifications, misclassifications, filename, group_index):
     filename = filename + '_classifications.h5'
-    with h5py.File(filename, 'w') as hf:
+    with h5py.File(filename, 'a') as hf:
         group = hf.create_group('group'+str(group_index))
         group.create_dataset("correct_classifications", data=correct_classifications)
         group.create_dataset("misclassifications", data=misclassifications)
@@ -234,7 +235,7 @@ def load_classifications(filename, group_index):
 
 def save_layer_outs(layer_outs, filename, group_index):
     filename = filename + '_layer_outs.h5'
-    with h5py.File(filename, 'w') as hf:
+    with h5py.File(filename, 'a') as hf:
         group = hf.create_group('group'+str(group_index))
         for i in range(len(layer_outs)):
             group.create_dataset("layer_outs_"+str(i), data=layer_outs[i])
@@ -268,7 +269,7 @@ def load_layer_outs(filename, group_index):
 
 def save_dominant_neurons(dominant_neurons, filename, group_index):
     filename = filename + '_dominant_neurons.h5'
-    with h5py.File(filename, 'w') as hf:
+    with h5py.File(filename, 'a') as hf:
         group = hf.create_group('group'+str(group_index))
         for i in range(len(dominant_neurons)):
             group.create_dataset("dominant_neurons"+str(i), data=dominant_neurons[i])
