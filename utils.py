@@ -139,10 +139,10 @@ def calculate_prediction_metrics(Y_test, Y_pred, score):
         print("Caught this error: " + repr(error))
 
 
-def get_dummy_dominants(model):
+def get_dummy_dominants(model, dominants):
     import random
-    dominant = {x: random.sample(range(model.layers[x].output_shape[1]), 2) for x in range(1, len(model.layers) - 1)}
-
+    # dominant = {x: random.sample(range(model.layers[x].output_shape[1]), 2) for x in range(1, len(model.layers))}
+    dominant = {x: random.sample(range(0, 10), len(dominants[x])) for x in range(1, len(dominants)+1)}
     return dominant
 
 
