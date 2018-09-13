@@ -1,4 +1,4 @@
-from utils import get_layer_outs
+from utils import get_layer_outs, show_image
 import cplex
 import numpy as np
 
@@ -145,9 +145,9 @@ def run_lp(model, X_val, Y_val, dominant, correct_classifications):
 
         ############################
         ############################
-        print('--------')
-        print('SETUP OK')
-        print('--------')
+        # print('--------')
+        # print('SETUP OK')
+        # print('--------')
 
         # Initialise Cplex problem
         problem = cplex.Cplex()
@@ -205,7 +205,7 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
     var_names = ['d']
     objective = [1]
     lower_bounds = [0.0]
-    upper_bounds = [1.0]
+    upper_bounds = [0.5]
 
     # Initialise the constraints
     constraints = []
@@ -221,7 +221,7 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
         for j in range(model.layers[i].output_shape[1]):
             var_names.append('x_' + str(i) + '_' + str(j))
             objective.append(0)
-            lower_bounds.append(0)
+            lower_bounds.append(-cplex.infinity)
             upper_bounds.append(cplex.infinity)
 
     # as above, define variables for all neurons in target layer
@@ -234,19 +234,17 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
     # Add constraints for the input (e.g., 28x28)
     # It should be very similar to the input image (d should be minimised)
     for i in range(0, len(flatX)):
-        import math
-        # layer = math.floor(i/28)
-        # neuron = i - layer * 28
         x_name = "x_0_" + str(i)
+        d_name = "d"#+ str(i)
         # x<=x0+d
         # constraints.append([[0, i + 1], [-1, 1]])
-        constraints.append([['d', x_name], [-1, 1]])
+        constraints.append([[d_name, x_name], [-1, 1]])
         rhs.append(float(flatX[i]))
         constraint_senses.append("L")
         constraint_names.append("x<=x" + str(i) + "+d")
         # x>=x0-d
         # constraints.append([[0, i + 1], [1, 1]])
-        constraints.append([['d', x_name], [1, 1]])
+        constraints.append([[d_name, x_name], [1, 1]])
         rhs.append(float(flatX[i]))
         constraint_senses.append("G")
         constraint_names.append("x>=x" + str(i) + "-d")
@@ -314,7 +312,7 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
                 constraint_senses.append("G")
                 if j in dominant[i]:
                     txt += "dom-"
-                    rhs.append(0.0)
+                    rhs.append(0)
                 else:
                     txt += "act"
                     rhs.append(0)
@@ -326,12 +324,19 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
 
     ############################
     ############################
-    print('--------')
-    print('SETUP OK')
-    print('--------')
+    # print('--------')
+    # print('SETUP OK')
+    # print('--------')
     try:
         # Initialise Cplex problem
         problem = cplex.Cplex()
+
+        cplex_file = "data/cplex.txt"
+        problem.set_log_stream(cplex_file)
+        problem.set_error_stream(cplex_file)
+        problem.set_warning_stream(cplex_file)
+        problem.set_results_stream(cplex_file)
+
 
         # Default sense is minimisation
         problem.objective.set_sense(problem.objective.sense.minimize)
@@ -354,21 +359,28 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
         # Get solution
         d = problem.solution.get_values("d")
         new_x = []
+        # d_max = 0
         for i in range(0, len(flatX)):
+            # d_name = "d_" + str(i)
+            # d = problem.solution.get_values(d_name)
+            # if d_max < d: d_max = d
             x_name = 'x_0_' + str(i)
-            v = (problem.solution.get_values(x_name))
-            if v < 0 or v > 1 or d <= 0 or d >= 1:
-                print("WRONG: ", x_name, "\tv:", v, "\t d:", d)
-                return None
+            v = problem.solution.get_values(x_name)
+            if v < 0 or v > 1 or d < 0 or d > 1:
+                print("WRONG: ", x_name, "\t:", v, "\t", d_name, ":", d)
+                return None, None
             new_x.append(v)
 
-        print(d)
-        print(flatX)
-        print(new_x)
+        # print(d)
+        # print(flatX)
+        # print(new_x)
 
-        return new_x
+        return new_x, d
     except Exception as e:
-        return None
+        import traceback
+        traceback.print_exc(e)
+        exit()
+        return None, None
 
 
 def run_lp_revised(model, X_val, Y_val, dominant, correct_classifications):
@@ -405,30 +417,34 @@ def run_lp_revised(model, X_val, Y_val, dominant, correct_classifications):
         layer_outs = get_layer_outs(model, x)
 
         # setup and run cplex
-        new_x = __run_cplex(model, dominant, target_layer, flatX, layer_outs)
+        new_x, d = __run_cplex(model, dominant, target_layer, flatX, layer_outs)
 
         # append perturbed input
         if new_x is not None:
             x_perturbed.append(new_x)
             y_perturbed.append(Y_val[test_index])
-            print("perturbation for ", test_index, " perturbed inputs", len(x_perturbed))
+            print("perturbation for ", test_index, " perturbed inputs", len(x_perturbed), "\td:", d)
 
             # dims = int(np.sqrt(len(flatX)))
             # show_image(np.asarray(flatX).reshape(dims, dims))
             # show_image(np.asarray(new_x).reshape(dims, dims))
 
-        if len(x_perturbed) >= 100:
-            return x_perturbed, y_perturbed
+            if len(x_perturbed) >= 100:
+                return x_perturbed, y_perturbed
+        else:
+            print("perturbation for ", test_index, " not found")
 
+    #
     return x_perturbed, y_perturbed
 
 
 if __name__ == "__main__":
-    model_name = "neural_networks/mnist_test_model_10_10"
-    from utils import get_dummy_dominants, load_model
-    model = load_model(model_name)
-    dominant = get_dummy_dominants(model)
-    run_lp(model, None, None, dominant, None)
+    print("lp.py")
+    # model_name = "neural_networks/mnist_test_model_10_10"
+    # from utils import get_dummy_dominants, load_model
+    # model = load_model(model_name)
+    # dominant = get_dummy_dominants(model)
+    # run_lp(model, None, None, dominant, None)
 
 
 
