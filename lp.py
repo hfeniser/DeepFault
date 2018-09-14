@@ -1,6 +1,8 @@
 from utils import get_layer_outs, show_image
 import cplex
 import numpy as np
+from random import shuffle
+
 
 
 def run_lp(model, X_val, Y_val, dominant, correct_classifications):
@@ -201,11 +203,24 @@ def run_lp(model, X_val, Y_val, dominant, correct_classifications):
 
 
 def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
+    # dominant = {x: [] for x in range(1, len(dominant) + 1)}
+    # target_layer = 10
+
     # Set the objective: d (the distance between the current and perturbed image) should be minimised
     var_names = ['d']
     objective = [1]
     lower_bounds = [0.0]
     upper_bounds = [0.5]
+
+    # var_names = []
+    # objective = []
+    # lower_bounds = []
+    # upper_bounds = []
+    # for i in range(0, len(flatX)):
+    #     var_names.append('d_' + str(i))
+    #     objective.append(1)
+    #     lower_bounds.append(0.0)
+    #     upper_bounds.append(0.5)
 
     # Initialise the constraints
     constraints = []
@@ -337,7 +352,6 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
         problem.set_warning_stream(cplex_file)
         problem.set_results_stream(cplex_file)
 
-
         # Default sense is minimisation
         problem.objective.set_sense(problem.objective.sense.minimize)
 
@@ -356,6 +370,13 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
         # Solve the problem
         problem.solve()
 
+
+        # Check solution status
+        solution_status = problem.solution.get_status()
+
+        if solution_status != 1:
+            return None, None, solution_status
+
         # Get solution
         d = problem.solution.get_values("d")
         new_x = []
@@ -368,19 +389,19 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
             v = problem.solution.get_values(x_name)
             if v < 0 or v > 1 or d < 0 or d > 1:
                 print("WRONG: ", x_name, "\t:", v, "\t", d_name, ":", d)
-                return None, None
+                return None, None, solution_status
             new_x.append(v)
+
 
         # print(d)
         # print(flatX)
         # print(new_x)
 
-        return new_x, d
+        return new_x, d, solution_status
     except Exception as e:
         import traceback
         traceback.print_exc(e)
         exit()
-        return None, None
 
 
 def run_lp_revised(model, X_val, Y_val, dominant, correct_classifications):
@@ -417,22 +438,24 @@ def run_lp_revised(model, X_val, Y_val, dominant, correct_classifications):
         layer_outs = get_layer_outs(model, x)
 
         # setup and run cplex
-        new_x, d = __run_cplex(model, dominant, target_layer, flatX, layer_outs)
+        new_x, d, solution_status = __run_cplex(model, dominant, target_layer, flatX, layer_outs)
 
         # append perturbed input
         if new_x is not None:
             x_perturbed.append(new_x)
             y_perturbed.append(Y_val[test_index])
-            print("perturbation for ", test_index, " perturbed inputs", len(x_perturbed), "\td:", d)
+            print("perturbation for (", test_index, ")", np.where(Y_val[test_index] == Y_val[test_index].max())[0],
+                  " perturbed inputs", len(x_perturbed), "\td:", d,
+                  " status:\t", solution_status)
 
             # dims = int(np.sqrt(len(flatX)))
             # show_image(np.asarray(flatX).reshape(dims, dims))
             # show_image(np.asarray(new_x).reshape(dims, dims))
 
-            if len(x_perturbed) >= 100:
+            if len(x_perturbed) >= 20:
                 return x_perturbed, y_perturbed
         else:
-            print("perturbation for ", test_index, " not found")
+            print("perturbation for ", test_index, " not found", ", status:\t", solution_status)
 
     #
     return x_perturbed, y_perturbed
