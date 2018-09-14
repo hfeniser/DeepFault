@@ -59,7 +59,7 @@ def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_
             test_idx += 1
         layer_idx += 1
 
-    dominant_neuron_idx= [[] for i in range(len(layer_outs))]
+    dominant_neuron_idx = [[] for i in range(1, len(layer_outs))]
 
     for i in range(len(scores)):
         for j in range(len(scores[i])):
@@ -67,10 +67,17 @@ def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_
             if np.isnan(score):
                 score = 0
             scores[i][j] = score
-            if score > 0.53:  # TODO: threshold for identifying the dominant neurons. value via experimentation?
+            # if score > 0.53:  # TODO: threshold for identifying the dominant neurons. value via experimentation?
+            #     dominant_neuron_idx[i].append(j)
+
+    flat_scores = [item for sublist in scores for item in sublist]
+    percentile = np.percentile(flat_scores, 95)
+    for i in range(len(scores)):
+        for j in range(len(scores[i])):
+            if scores[i][j] >= percentile:
                 dominant_neuron_idx[i].append(j)
 
-    return dominant_neuron_idx[1:-1]
+    return dominant_neuron_idx[:-1]
 
 
 def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_outs):
