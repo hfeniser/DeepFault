@@ -91,12 +91,12 @@ def parse_arguments():
 
 if __name__ == "__main__":
     args = parse_arguments()
-    args['model'] = "mnist_test_model_5_10"
-    args['test'] = True#"mnist_test_model_5_10_2018-09-10 10:43:07"
-    args['approach'] = "tarantula"#"../data/mnist_test_model_5_10_2018-09-10 15:43:38_tarantula"#'tarantula'
-    args['lp'] = True#"../data/mnist_test_model_5_10_2018-09-10 15:43:38"
-    # args['neurons'] = 10
-    # args['layers'] = 5
+    args['model'] = "mnist_test_model_5_20"
+    args['test'] = True#"mnist_test_model_10_10_2018-09-11 14:01:12"
+    args['approach'] = "tarantula"#"mnist_test_model_10_10_2018-09-12 16:00:23_tarantula"#'tarantula'
+    args['lp'] = True#"mnist_test_model_10_10_2018-09-12 16:00:23"
+    args['neurons'] = 20
+    args['layers'] = 5
 
     ####################
     # 0) Load MNIST data
@@ -119,6 +119,7 @@ if __name__ == "__main__":
     # test set becomes validation set (temporary)
     # test_model(model, X_test, Y_test)
     X_val, Y_val = X_test, Y_test
+
 
     ####################
     # 2)test the model and receive the indexes of correct and incorrect classifications
@@ -166,6 +167,12 @@ if __name__ == "__main__":
     # else:
     dominant = {x: dominant_neuron_idx[x - 1] for x in range(1, len(dominant_neuron_idx) + 1)}
 
+    #We want to check the randomly selected dominants
+    # from utils import get_dummy_dominants
+    # dominant = get_dummy_dominants(model, dominant)
+
+
+
     ####################
     # 4) Run LP
     # Receive the set of dominant neurons for each layer from Step 3 # and will produce new inputs based on
@@ -174,7 +181,8 @@ if __name__ == "__main__":
         from lp import run_lp_revised
         x_perturbed, y_perturbed = run_lp_revised(model, X_val, Y_val, dominant, correct_classifications)
     else:
-        filename = path.join(experiment_path, args['lp'])
+        filename = args['lp'] + args['approach']
+        filename = path.join(experiment_path, filename)
         x_perturbed, y_perturbed = load_perturbed_test_groups(filename, group_index)
 
     # reshape them into the expected format
@@ -187,11 +195,13 @@ if __name__ == "__main__":
         filename = experiment_name + "_" + args['approach']
         save_perturbed_test_groups(x_perturbed, y_perturbed, filename, group_index)
 
-    ####################
-    # retrain the model
-    train_model_fault_localisation(model, x_perturbed, y_perturbed)
 
     ####################
-    # retest the model
+    # 5) retrain the model
+    # train_model_fault_localisation(model, x_perturbed, y_perturbed, len(x_perturbed))
+    model.fit(x_perturbed, y_perturbed, batch_size=32, epochs=10, verbose=1)
+
+    ####################
+    # 6) retest the model
     test_model(model, X_test, Y_test)
-    
+
