@@ -226,7 +226,7 @@ def tarantula_analysis_for_class(correct_classification_idx, misclassification_i
             #     dominant_neuron_idx[i].append(j)
 
     flat_scores = [item for sublist in scores[:-1] for item in sublist]
-    percentile = np.percentile(flat_scores, 90)
+    percentile = np.percentile(flat_scores, 95)
     # percentile = max(flat_scores)
     for i in range(len(scores)):
         for j in range(len(scores[i])):
