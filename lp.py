@@ -210,7 +210,7 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
     var_names = ['d']
     objective = [1]
     lower_bounds = [0.0]
-    upper_bounds = [0.5]
+    upper_bounds = [1.0]
 
     # var_names = []
     # objective = []
@@ -220,7 +220,7 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
     #     var_names.append('d_' + str(i))
     #     objective.append(1)
     #     lower_bounds.append(0.0)
-    #     upper_bounds.append(0.5)
+    #     upper_bounds.append(1.0)
 
     # Initialise the constraints
     constraints = []
@@ -250,7 +250,8 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
     # It should be very similar to the input image (d should be minimised)
     for i in range(0, len(flatX)):
         x_name = "x_0_" + str(i)
-        d_name = "d"#+ str(i)
+        d_name = "d"
+        # d_name = "d_" + str(i)
         # x<=x0+d
         # constraints.append([[0, i + 1], [-1, 1]])
         constraints.append([[d_name, x_name], [-1, 1]])
@@ -291,7 +292,10 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
             # for all the neurons in the i-1 layer
             for k in range(model.layers[i - 1].output_shape[1]):
                 constraint[0].append("x_" + str(i - 1) + "_" + str(k))  # generate a constraint
-                constraint[1].append(float(model.layers[i].get_weights()[0][k][j]))  # add its weight (multiplier)
+                if i == 1 or layer_outs[i-1][0][0][k] > 0 or k in dominant[i-1]:
+                    constraint[1].append(float(model.layers[i].get_weights()[0][k][j]))  # add its weight (multiplier)
+                else:
+                    constraint[1].append(0.0)
 
             # if the j-th neuron in the i-th layer is activated or dominant then its value should be equal to
             # W_(i-1,k)X_(i-1,k) = Xij
@@ -308,10 +312,10 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
             else:
                 constraint[0].append("x_" + str(i) + "_" + str(j))
                 constraint[1].append(-1)
-                constraint_senses.append("L")  # w00X00+w01x01+... -x22 <= 0, x22=0, w00X00+w01x01+...<= 0
+                constraint_senses.append("E")  # w00X00+w01x01+... -x22 <= 0, x22=0, w00X00+w01x01+...<= 0
                 constraint_names.append("none:" + "x_" + str(i) + "_" + str(j))
 
-            rhs.append(0)  # append rhs
+            rhs.append(0.0)  # append rhs
 
             constraints.append(constraint)
 
@@ -325,15 +329,15 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
             txt = "relu-"
             if layer_outs[i][0][0][j] > 0 or j in dominant[i]:
                 constraint_senses.append("G")
-                if j in dominant[i]:
-                    txt += "dom-"
-                    rhs.append(0)
-                else:
+                if layer_outs[i][0][0][j] > 0:
                     txt += "act"
-                    rhs.append(0)
+                    rhs.append(min(float(layer_outs[i][0][0][j]), 0.01))
+                else:# j in dominant[i]:
+                    txt += "dom-"
+                    rhs.append(0.01)
             else:
-                constraint_senses.append("E")  # x22=0
-                rhs.append(0)
+                constraint_senses.append("L")  # x22=0
+                rhs.append(0.0)
 
             constraint_names.append(txt + ":" + "x_" + str(i) + "_" + str(j))
 
@@ -387,8 +391,8 @@ def __run_cplex(model, dominant, target_layer, flatX, layer_outs):
             # if d_max < d: d_max = d
             x_name = 'x_0_' + str(i)
             v = problem.solution.get_values(x_name)
-            if v < 0 or v > 1 or d < 0 or d > 1:
-                print("WRONG: ", x_name, "\t:", v, "\t", d_name, ":", d)
+            if v < 0 or v > 1 or d <= 0 or d > 1:
+                print("WRONG: ", x_name, "\t:", v, "\t", "d", ":", d)
                 return None, None, solution_status
             new_x.append(v)
 
@@ -410,7 +414,6 @@ def run_lp_revised(model, X_val, Y_val, dominant, correct_classifications):
     :param dominant:
     :return:
     """
-
     x_perturbed = []
     y_perturbed = []
 
@@ -421,7 +424,13 @@ def run_lp_revised(model, X_val, Y_val, dominant, correct_classifications):
     target_layer = max(hidden_layers)
 
     # for all the testing set
+    # indexes = np.arange(start, len(X_val))
+    # shuffle(indexes)
+    # for test_index in indexes:
     for test_index in range(0, len(X_val)):
+
+        # if np.argmax(Y_val[test_index]) != class_index:
+        #     continue
 
         # if this testing input has been classified correctly, generate perturbations
         if test_index not in correct_classifications:
@@ -448,11 +457,16 @@ def run_lp_revised(model, X_val, Y_val, dominant, correct_classifications):
                   " perturbed inputs", len(x_perturbed), "\td:", d,
                   " status:\t", solution_status)
 
+            # from test_nn import test_model
+            # test_model(model,
+            #            np.asarray(x_perturbed).reshape(np.asarray(x_perturbed).shape[0], 1, 28, 28),
+            #            np.asarray(y_perturbed).reshape(np.asarray(y_perturbed).shape[0], 10))
+
             # dims = int(np.sqrt(len(flatX)))
             # show_image(np.asarray(flatX).reshape(dims, dims))
             # show_image(np.asarray(new_x).reshape(dims, dims))
 
-            if len(x_perturbed) >= 20:
+            if len(x_perturbed) >= 1000:
                 return x_perturbed, y_perturbed
         else:
             print("perturbation for ", test_index, " not found", ", status:\t", solution_status)
