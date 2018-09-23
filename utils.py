@@ -300,3 +300,60 @@ def load_dominant_neurons(filename, group_index):
         # layer outs to the caller function
         print("Dominant neurons  loaded from ", filename)
         return dominant_neurons
+
+
+def find_class_of(X, Y, desired_class):
+    X_class = []
+    Y_class = []
+    print(Y[0])
+    print(Y[1])
+    for x,y in zip(X,Y):
+        if y[desired_class] == 1:
+            X_class.append(x)
+            Y_class.append(y)
+ 
+    return np.array(X_class), np.array(Y_class)
+
+def cone_of_influence_analysis(model, dominants):
+
+    hidden_layers = [l for l in dominants.keys() if len(dominants[l]) > 0]
+    target_layer = max(hidden_layers)
+
+    scores = []
+    for i in range(1, target_layer+1):
+        scores.append(np.zeros(model.layers[i].output_shape[1]))
+
+    #for i in range(0, len(model.layers)):
+    #    print(model.layers[i].get_weights())
+
+    for i in range(2, target_layer + 1)[::-1]:
+        for j in range(model.layers[i].output_shape[1]):
+            for k in range(model.layers[i - 1].output_shape[1]):
+                relevant_weights = model.layers[i].get_weights()[0][k]
+                if (j in dominants[i] or scores[i-1][j] > 0) and relevant_weights[j] > 0:
+                    scores[i-2][k] += 1
+                elif (j in dominants[i] or scores[i-1][j] > 0) and relevant_weights[j] < 0:
+                    scores[i-2][k] -= 1
+                elif j not in dominants[i] and scores[i-1][j] < 0 and relevant_weights[j] > 0:
+                    scores[i-2][k] -= 1
+                elif j not in dominants[i] and scores[i-1][j] < 0 and relevant_weights[j] < 0:
+                    scores[i-2][k] += 1
+    print(scores)
+    return scores
+
+
+def weight_analysis(model):
+    threshold_weight = 0.1
+    deactivatables = []
+    for i in range(2, target_layer + 1):
+        for k in range(model.layers[i - 1].output_shape[1]):
+            neuron_weights = model.layers[i].get_weights()[0][k]
+            deactivate = True
+            for j in range(len(neuron_weights)):
+                if neuron_weights[j] > threshold_weight:
+                    deactivate = False
+
+            if deactivate:
+                deactivatables.append((i,k))
+
+    return deactivatables
