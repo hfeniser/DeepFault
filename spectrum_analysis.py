@@ -118,16 +118,24 @@ def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_out
         layer_idx += 1
 
 
-    dominant_neuron_idx= [[] for i in range(len(layer_outs))]
+    dominant_neuron_idx= [[] for i in range(1, len(layer_outs))]
 
     for i in range(len(scores)):
         for j in range(len(scores[i])):
             score = float(num_cf[i][j]) / ((num_cf[i][j] + num_uf[i][j]) * (num_cf[i][j] + num_cs[i][j])) **(.5)
             scores[i][j] = score
-            if score > 0.29:  # TODO: Threshold? for identifying the dominant neurons. value via experimentation?
+            #if score > 0.29:  # TODO: Threshold? for identifying the dominant neurons. value via experimentation?
+            #    dominant_neuron_idx[i].append(j)
+
+    flat_scores = [item for sublist in scores for item in sublist]
+    percentile = np.percentile(flat_scores, percentile)
+    # percentile = max(flat_scores)
+    for i in range(len(scores)):
+        for j in range(len(scores[i])):
+            if scores[i][j] >= percentile:
                 dominant_neuron_idx[i].append(j)
 
-    return dominant_neuron_idx[1:-1]
+    return dominant_neuron_idx[:-1]
 
 
 def fine_intersection_analysis(model, predictions, true_classes,
