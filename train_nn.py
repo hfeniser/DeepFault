@@ -1,5 +1,5 @@
 from keras.models import Sequential
-from keras.layers import Dense, Flatten
+from keras.layers import Dense, Flatten, LeakyReLU
 from utils import get_python_version
 
 python_version = get_python_version()
@@ -58,7 +58,8 @@ def train_model(args, X_train=None, Y_train=None, X_test=None, Y_test=None):
 
     # Add hidden layers.
     for _ in range(num_hidden):
-        model.add(Dense(num_neuron, activation='relu', use_bias=False))
+        model.add(Dense(num_neuron,  use_bias=False))
+        model.add(LeakyReLU(alpha=.01))
 
     # Add output layer
     model.add(Dense(10, activation='softmax', use_bias=False))
