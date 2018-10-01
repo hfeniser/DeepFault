@@ -5,7 +5,7 @@ from keras import backend as K
 import sys
 from sklearn.metrics import classification_report, confusion_matrix
 from math import ceil
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 import h5py
 from datetime import datetime
@@ -29,8 +29,8 @@ def load_data(one_hot=True):
     :return:
     """
     #Load data
-    (X_train, y_train), (X_test, y_test) = mnist.load_data()
-    # (X_train, y_train), (X_test, y_test) = load_MNIST()
+    #(X_train, y_train), (X_test, y_test) = mnist.load_data()
+    (X_train, y_train), (X_test, y_test) = load_MNIST()
 
     #Preprocess dataset
     #Normalization and reshaping of input.
@@ -357,3 +357,9 @@ def weight_analysis(model):
                 deactivatables.append((i,k))
 
     return deactivatables
+
+
+def normalize(x):
+    # utility function to normalize a tensor by its L2 norm
+    return x / (K.sqrt(K.mean(K.square(x))) + 1e-5)
+
