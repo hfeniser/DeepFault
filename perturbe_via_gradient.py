@@ -1,44 +1,26 @@
 from keras import backend as K
 import numpy as np
-from utils import load_model, load_data, get_layer_outs
+from utils import load_model, load_data, get_layer_outs, normalize
 
-class Jacobian(object):
-
-    def __init__(self, model, layer_index, dominant_index):
-        # Define the function to compute the gradient
-        self.compute_gradients = None
-        input_tensors = [model.layers[0].output]
-        gradients = model.optimizer.get_gradients(K.mean(model.get_layer('dense_2').output[..., 3]), model.layers[0].output)
-        self.compute_gradients = K.function(inputs = input_tensors, outputs = gradients)
-
-    def get_gradients(self, layer_out, model):
-        grads = self.compute_gradients([layer_out])
-        print('YEWS')
-        print(len(grads))
-        return grads[0]
-
-
-def normalize(x):
-    # utility function to normalize a tensor by its L2 norm
-    return x / (K.sqrt(K.mean(K.square(x))) + 1e-5)
 
 def perturbe(model, X_val, Y_val, dominant, correct_classifications):    
  
     hidden_layers = [l for l in dominant.keys() if len(dominant[l]) > 0]
     target_layer = max(hidden_layers) 
     
-    last_layer_doms = dominant[target_layer]
+    last_layer_doms = dominant[target_layer-2]
     
     input_tensor = model.layers[0].output
 
-    perturbed_set = []
-    for x in X_val[:10]:
+    perturbed_set_x = []
+    perturbed_set_y = []
+    for x, y in zip(list(np.array(X_val)[correct_classifications])[100:110], list(np.array(Y_val)[correct_classifications])[100:110]):
         grads_for_doms = []
         for dom in last_layer_doms:
-
+            print(dom)
             flatX = [item for sublist in x[0] for item in sublist]
             
-            loss = K.mean(model.layers[-2].output[..., dom]) #get_layer('leaky_re_lu_1').output[..., 2])
+            loss = K.mean(model.layers[target_layer-2].output[..., dom]) #get_layer('leaky_re_lu_1').output[..., 2])
             grads = normalize(K.gradients(loss, input_tensor)[0])
             iterate = K.function([input_tensor], [loss, grads])
             loss_val, grad_vals = iterate([np.expand_dims(flatX, axis=0)]) 
@@ -54,37 +36,40 @@ def perturbe(model, X_val, Y_val, dominant, correct_classifications):
                     allAgree = False
 
             if allAgree and grads_for_doms[0][0][i] > 0:
-                perturbed_x.append(min(flatX[i] + 0.2, 1))
+                perturbed_x.append(min(flatX[i] + 0.1, 1))
                 c1 += 1
             elif allAgree and grads_for_doms[0][0][i] < 0:
-                perturbed_x.append(max(flatX[i] - 0.2, 0))
+                perturbed_x.append(max(flatX[i] - 0.1, 0))
                 c2 += 1
             else:
                 perturbed_x.append(flatX[i])
 
-        perturbed_set.append(perturbed_x)
+        perturbed_set_x.append(perturbed_x)
+        perturbed_set_y.append(y)
         print(c1)
         print(c2)
         print('*****')
+        if len(perturbed_set_x) == 10:
+            break
 
-    for xv, xp in zip(X_val[:10], perturbed_set):
+    for xv, xp in zip(list(np.array(X_val)[correct_classifications])[100:110], perturbed_set_x):
 
         layer_outs = get_layer_outs(model, xv)
         print('BEFORE:')
         for dom in last_layer_doms:
-            print(layer_outs[-2][0][0][dom])
-        
+            print(layer_outs[target_layer-2][0][0][dom])
+
         xp = np.asarray(xp).reshape(1, 1, 28, 28)
         layer_outs = get_layer_outs(model, xp)
         print('AFTER:')
         for dom in last_layer_doms:
-            print(layer_outs[-2][0][0][dom])
+            print(layer_outs[target_layer-1][0][0][dom])
 
         print('========')
 
-    return perturbed_set
+    return perturbed_set_x, perturbed_set_y
 
-        #perturbed_x = []
-        #perturbed_x = [sum(x) for x in zip(grad_vals[0], flatX)] 
+    #perturbed_x = []
+    #perturbed_x = [sum(x) for x in zip(grad_vals[0], flatX)] 
     
 
