@@ -24,7 +24,7 @@ def coarse_intersection_analysis(correct_classification_idx, misclassification_i
     return dominant_neuron_idx[:-1]
 
 
-def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_outs):
+def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_outs, percent):
 
     scores = []
     num_cf = []
@@ -71,7 +71,7 @@ def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_
             #     dominant_neuron_idx[i].append(j)
 
     flat_scores = [item for sublist in scores for item in sublist]
-    percentile = np.percentile(flat_scores, 90)
+    percentile = np.percentile(flat_scores, percent)
     # percentile = max(flat_scores)
     for i in range(len(scores)):
         for j in range(len(scores[i])):
@@ -82,7 +82,7 @@ def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_
     return dominant_neuron_idx[:-1]
 
 
-def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_outs):
+def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_outs, percent):
 
     scores = []
     num_cf = []
@@ -128,7 +128,7 @@ def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_out
             #    dominant_neuron_idx[i].append(j)
 
     flat_scores = [item for sublist in scores for item in sublist]
-    percentile = np.percentile(flat_scores, percentile)
+    percentile = np.percentile(flat_scores, percent)
     # percentile = max(flat_scores)
     for i in range(len(scores)):
         for j in range(len(scores[i])):
