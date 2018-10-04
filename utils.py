@@ -1,4 +1,4 @@
-from keras.datasets import mnist
+from keras.datasets import mnist, cifar
 from keras.utils import np_utils
 from keras.models import model_from_json
 from keras import backend as K
@@ -12,6 +12,13 @@ from datetime import datetime
 from os import path, makedirs
 import traceback
 
+def load_CIFAR():
+    (X_train, y_train), (X_test, y_test) = cifar10.load_data()
+
+    y_train = keras.utils.to_categorical(y_train, num_classes=10)
+    y_test = keras.utils.to_categorical(y_test, num_classes=10)
+
+    return (X_train, y_train), (X_test, y_test)
 
 def load_MNIST():
     # path = "/scratch/sg778/DeepEntrust/tutorial/datasets/mnist.npz"
