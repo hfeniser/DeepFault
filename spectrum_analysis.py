@@ -128,7 +128,8 @@ def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_out
             #    dominant_neuron_idx[i].append(j)
 
     flat_scores = [item for sublist in scores for item in sublist]
-    percentile = np.percentile(flat_scores, percent)
+    ######!!!!!!!!For some reason it returns nan so i use nanpercentile !!!!!!!!!!!!########
+    percentile = np.nanpercentile(flat_scores, percent)
     # percentile = max(flat_scores)
     for i in range(len(scores)):
         for j in range(len(scores[i])):

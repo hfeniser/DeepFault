@@ -1,0 +1,152 @@
+No dominant for model 5_30 for layer 1 with faulty percent 95.
+Accuracy for model 5_30 for layer 3 with faulty percent 95 and distance 0.2: [7.603243827819824, 0.10000000149011612] (Actual Dominants).
+Accuracy for model 5_30 for layer 3 with faulty percent 95 and distance 0.2: [5.797924518585205, 0.30000001192092896](Random Dominants).
+
+Accuracy for model 5_30 for layer 5 with faulty percent 95 and distance 0.2: [4.639317989349365, 0.4000000059604645] (Actual Dominants).
+Accuracy for model 5_30 for layer 5 with faulty percent 95 and distance 0.2: [0.0017648484790697694, 1.0](Random Dominants).
+
+Accuracy for model 5_30 for layer 7 with faulty percent 95 and distance 0.2: [15.313131332397461, 0.0] (Actual Dominants).
+Accuracy for model 5_30 for layer 7 with faulty percent 95 and distance 0.2: [4.722567558288574, 0.4000000059604645](Random Dominants).
+
+Accuracy for model 5_30 for layer 9 with faulty percent 95 and distance 0.2: [7.736154079437256, 0.10000000149011612] (Actual Dominants).
+Accuracy for model 5_30 for layer 9 with faulty percent 95 and distance 0.2: [1.2302440404891968, 0.699999988079071](Random Dominants).
+
+No dominant for model 5_30 for layer 1 with faulty percent 95.
+Accuracy for model 5_30 for layer 3 with faulty percent 95 and distance 0.1: [2.458704710006714, 0.30000001192092896] (Actual Dominants).
+Accuracy for model 5_30 for layer 3 with faulty percent 95 and distance 0.1: [2.87300181388855, 0.4000000059604645](Random Dominants).
+
+Accuracy for model 5_30 for layer 5 with faulty percent 95 and distance 0.1: [1.1643708944320679, 0.5] (Actual Dominants).
+Accuracy for model 5_30 for layer 5 with faulty percent 95 and distance 0.1: [0.7346764802932739, 0.800000011920929](Random Dominants).
+
+Accuracy for model 5_30 for layer 7 with faulty percent 95 and distance 0.1: [8.98681354522705, 0.0] (Actual Dominants).
+Accuracy for model 5_30 for layer 7 with faulty percent 95 and distance 0.1: [4.931037902832031, 0.10000000149011612](Random Dominants).
+
+Accuracy for model 5_30 for layer 9 with faulty percent 95 and distance 0.1: [3.612617015838623, 0.4000000059604645] (Actual Dominants).
+Accuracy for model 5_30 for layer 9 with faulty percent 95 and distance 0.1: [0.00032611581264063716, 1.0](Random Dominants).
+
+No dominant for model 5_30 for layer 1 with faulty percent 95.
+Accuracy for model 5_30 for layer 3 with faulty percent 95 and distance 0.05: [0.07274176925420761, 1.0] (Actual Dominants).
+Accuracy for model 5_30 for layer 3 with faulty percent 95 and distance 0.05: [2.1275032850098796e-05, 1.0](Random Dominants).
+
+Accuracy for model 5_30 for layer 5 with faulty percent 95 and distance 0.05: [0.2929231822490692, 0.8999999761581421] (Actual Dominants).
+Accuracy for model 5_30 for layer 5 with faulty percent 95 and distance 0.05: [0.0025074000004678965, 1.0](Random Dominants).
+
+Accuracy for model 5_30 for layer 7 with faulty percent 95 and distance 0.05: [1.6332075595855713, 0.6000000238418579] (Actual Dominants).
+Accuracy for model 5_30 for layer 7 with faulty percent 95 and distance 0.05: [0.6027190685272217, 0.800000011920929](Random Dominants).
+
+Accuracy for model 5_30 for layer 9 with faulty percent 95 and distance 0.05: [0.8811320066452026, 0.8999999761581421] (Actual Dominants).
+Accuracy for model 5_30 for layer 9 with faulty percent 95 and distance 0.05: [0.0027280920185148716, 1.0](Random Dominants).
+
+No dominant for model 5_30 for layer 1 with faulty percent 95.
+Accuracy for model 5_30 for layer 3 with faulty percent 95 and distance 0.01: [0.003511688904836774, 1.0] (Actual Dominants).
+Accuracy for model 5_30 for layer 3 with faulty percent 95 and distance 0.01: [0.006913322955369949, 1.0](Random Dominants).
+
+Accuracy for model 5_30 for layer 5 with faulty percent 95 and distance 0.01: [0.01057116873562336, 1.0] (Actual Dominants).
+Accuracy for model 5_30 for layer 5 with faulty percent 95 and distance 0.01: [0.004474771209061146, 1.0](Random Dominants).
+
+Accuracy for model 5_30 for layer 7 with faulty percent 95 and distance 0.01: [0.03996620327234268, 1.0] (Actual Dominants).
+Accuracy for model 5_30 for layer 7 with faulty percent 95 and distance 0.01: [0.012423025444149971, 1.0](Random Dominants).
+
+Accuracy for model 5_30 for layer 9 with faulty percent 95 and distance 0.01: [0.028548065572977066, 1.0] (Actual Dominants).
+Accuracy for model 5_30 for layer 9 with faulty percent 95 and distance 0.01: [0.01581083983182907, 1.0](Random Dominants).
+
+No dominant for model 8_20 for layer 1 with faulty percent 95.
+No dominant for model 8_20 for layer 3 with faulty percent 95.
+No dominant for model 8_20 for layer 5 with faulty percent 95.
+No dominant for model 8_20 for layer 7 with faulty percent 95.
+Accuracy for model 8_20 for layer 9 with faulty percent 95 and distance 0.2: [7.754925727844238, 0.0] (Actual Dominants).
+Accuracy for model 8_20 for layer 9 with faulty percent 95 and distance 0.2: [3.533951997756958, 0.4000000059604645](Random Dominants).
+
+Accuracy for model 8_20 for layer 11 with faulty percent 95 and distance 0.2: [4.188647270202637, 0.20000000298023224] (Actual Dominants).
+Accuracy for model 8_20 for layer 11 with faulty percent 95 and distance 0.2: [9.693573951721191, 0.10000000149011612](Random Dominants).
+
+Accuracy for model 8_20 for layer 13 with faulty percent 95 and distance 0.2: [5.905503749847412, 0.0] (Actual Dominants).
+Accuracy for model 8_20 for layer 13 with faulty percent 95 and distance 0.2: [2.2337441444396973, 0.10000000149011612](Random Dominants).
+
+Accuracy for model 8_20 for layer 15 with faulty percent 95 and distance 0.2: [5.73663330078125, 0.20000000298023224] (Actual Dominants).
+Accuracy for model 8_20 for layer 15 with faulty percent 95 and distance 0.2: [0.10520873218774796, 1.0](Random Dominants).
+
+No dominant for model 8_20 for layer 1 with faulty percent 95.
+No dominant for model 8_20 for layer 3 with faulty percent 95.
+No dominant for model 8_20 for layer 5 with faulty percent 95.
+No dominant for model 8_20 for layer 7 with faulty percent 95.
+Accuracy for model 8_20 for layer 9 with faulty percent 95 and distance 0.1: [3.2475063800811768, 0.30000001192092896] (Actual Dominants).
+Accuracy for model 8_20 for layer 9 with faulty percent 95 and distance 0.1: [3.9355297088623047, 0.4000000059604645](Random Dominants).
+
+Accuracy for model 8_20 for layer 11 with faulty percent 95 and distance 0.1: [1.965012788772583, 0.699999988079071] (Actual Dominants).
+Accuracy for model 8_20 for layer 11 with faulty percent 95 and distance 0.1: [4.500141620635986, 0.30000001192092896](Random Dominants).
+
+Accuracy for model 8_20 for layer 13 with faulty percent 95 and distance 0.1: [2.6039671897888184, 0.4000000059604645] (Actual Dominants).
+Accuracy for model 8_20 for layer 13 with faulty percent 95 and distance 0.1: [0.9425667524337769, 0.6000000238418579](Random Dominants).
+
+Accuracy for model 8_20 for layer 15 with faulty percent 95 and distance 0.1: [1.8723920583724976, 0.6000000238418579] (Actual Dominants).
+Accuracy for model 8_20 for layer 15 with faulty percent 95 and distance 0.1: [2.08925724029541, 0.5](Random Dominants).
+
+No dominant for model 8_20 for layer 1 with faulty percent 95.
+No dominant for model 8_20 for layer 3 with faulty percent 95.
+No dominant for model 8_20 for layer 5 with faulty percent 95.
+No dominant for model 8_20 for layer 7 with faulty percent 95.
+Accuracy for model 8_20 for layer 9 with faulty percent 95 and distance 0.05: [1.1847652196884155, 0.5] (Actual Dominants).
+Accuracy for model 8_20 for layer 9 with faulty percent 95 and distance 0.05: [0.4251505732536316, 0.800000011920929](Random Dominants).
+
+Accuracy for model 8_20 for layer 11 with faulty percent 95 and distance 0.05: [0.6183227896690369, 0.800000011920929] (Actual Dominants).
+Accuracy for model 8_20 for layer 11 with faulty percent 95 and distance 0.05: [0.6392109394073486, 0.699999988079071](Random Dominants).
+
+Accuracy for model 8_20 for layer 13 with faulty percent 95 and distance 0.05: [0.9403462409973145, 0.6000000238418579] (Actual Dominants).
+Accuracy for model 8_20 for layer 13 with faulty percent 95 and distance 0.05: [0.15771302580833435, 0.8999999761581421](Random Dominants).
+
+Accuracy for model 8_20 for layer 15 with faulty percent 95 and distance 0.05: [0.7497870922088623, 0.699999988079071] (Actual Dominants).
+Accuracy for model 8_20 for layer 15 with faulty percent 95 and distance 0.05: [0.04039895907044411, 1.0](Random Dominants).
+
+No dominant for model 8_20 for layer 1 with faulty percent 95.
+No dominant for model 8_20 for layer 3 with faulty percent 95.
+No dominant for model 8_20 for layer 5 with faulty percent 95.
+No dominant for model 8_20 for layer 7 with faulty percent 95.
+Accuracy for model 8_20 for layer 9 with faulty percent 95 and distance 0.01: [0.0946270003914833, 1.0] (Actual Dominants).
+Accuracy for model 8_20 for layer 9 with faulty percent 95 and distance 0.01: [0.08920783549547195, 0.8999999761581421](Random Dominants).
+
+Accuracy for model 8_20 for layer 11 with faulty percent 95 and distance 0.01: [0.052245866507291794, 1.0] (Actual Dominants).
+Accuracy for model 8_20 for layer 11 with faulty percent 95 and distance 0.01: [0.04900664836168289, 1.0](Random Dominants).
+
+Accuracy for model 8_20 for layer 13 with faulty percent 95 and distance 0.01: [0.10726796090602875, 0.8999999761581421] (Actual Dominants).
+Accuracy for model 8_20 for layer 13 with faulty percent 95 and distance 0.01: [0.10109379142522812, 0.8999999761581421](Random Dominants).
+
+Accuracy for model 8_20 for layer 15 with faulty percent 95 and distance 0.01: [0.08388250321149826, 1.0] (Actual Dominants).
+Accuracy for model 8_20 for layer 15 with faulty percent 95 and distance 0.01: [0.0808376893401146, 1.0](Random Dominants).
+
+Accuracy for model 3_50 for layer 1 with faulty percent 95 and distance 0.2: [0.3790392577648163, 0.8999999761581421] (Actual Dominants).
+Accuracy for model 3_50 for layer 1 with faulty percent 95 and distance 0.2: [1.289953589439392, 0.800000011920929](Random Dominants).
+
+Accuracy for model 3_50 for layer 3 with faulty percent 95 and distance 0.2: [1.8477920293807983, 0.6000000238418579] (Actual Dominants).
+Accuracy for model 3_50 for layer 3 with faulty percent 95 and distance 0.2: [0.11554236710071564, 0.8999999761581421](Random Dominants).
+
+Accuracy for model 3_50 for layer 5 with faulty percent 95 and distance 0.2: [4.623141288757324, 0.5] (Actual Dominants).
+Accuracy for model 3_50 for layer 5 with faulty percent 95 and distance 0.2: [5.6522746086120605, 0.4000000059604645](Random Dominants).
+
+Accuracy for model 3_50 for layer 1 with faulty percent 95 and distance 0.1: [0.1392129808664322, 0.8999999761581421] (Actual Dominants).
+Accuracy for model 3_50 for layer 1 with faulty percent 95 and distance 0.1: [0.0028255931101739407, 1.0](Random Dominants).
+
+Accuracy for model 3_50 for layer 3 with faulty percent 95 and distance 0.1: [0.26240432262420654, 0.8999999761581421] (Actual Dominants).
+Accuracy for model 3_50 for layer 3 with faulty percent 95 and distance 0.1: [0.007986355572938919, 1.0](Random Dominants).
+
+Accuracy for model 3_50 for layer 5 with faulty percent 95 and distance 0.1: [0.89990234375, 0.800000011920929] (Actual Dominants).
+Accuracy for model 3_50 for layer 5 with faulty percent 95 and distance 0.1: [0.425772100687027, 0.8999999761581421](Random Dominants).
+
+Accuracy for model 3_50 for layer 1 with faulty percent 95 and distance 0.05: [0.048648618161678314, 1.0] (Actual Dominants).
+Accuracy for model 3_50 for layer 1 with faulty percent 95 and distance 0.05: [0.010107630863785744, 1.0](Random Dominants).
+
+Accuracy for model 3_50 for layer 3 with faulty percent 95 and distance 0.05: [0.05725916102528572, 1.0] (Actual Dominants).
+Accuracy for model 3_50 for layer 3 with faulty percent 95 and distance 0.05: [0.01025618426501751, 1.0](Random Dominants).
+
+Accuracy for model 3_50 for layer 5 with faulty percent 95 and distance 0.05: [0.30948713421821594, 0.8999999761581421] (Actual Dominants).
+Accuracy for model 3_50 for layer 5 with faulty percent 95 and distance 0.05: [4.593546691467054e-05, 1.0](Random Dominants).
+
+Accuracy for model 3_50 for layer 1 with faulty percent 95 and distance 0.01: [0.015858029946684837, 1.0] (Actual Dominants).
+Accuracy for model 3_50 for layer 1 with faulty percent 95 and distance 0.01: [0.01218540407717228, 1.0](Random Dominants).
+
+Accuracy for model 3_50 for layer 3 with faulty percent 95 and distance 0.01: [0.01674932800233364, 1.0] (Actual Dominants).
+Accuracy for model 3_50 for layer 3 with faulty percent 95 and distance 0.01: [0.017016101628541946, 1.0](Random Dominants).
+
+Accuracy for model 3_50 for layer 5 with faulty percent 95 and distance 0.01: [0.030823245644569397, 1.0] (Actual Dominants).
+Accuracy for model 3_50 for layer 5 with faulty percent 95 and distance 0.01: [0.027882585301995277, 1.0](Random Dominants).
+
