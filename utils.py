@@ -36,8 +36,8 @@ def load_data(one_hot=True):
     :return:
     """
     #Load data
-    #(X_train, y_train), (X_test, y_test) = mnist.load_data()
-    (X_train, y_train), (X_test, y_test) = load_MNIST()
+    (X_train, y_train), (X_test, y_test) = mnist.load_data()
+    #(X_train, y_train), (X_test, y_test) = load_MNIST()
 
     #Preprocess dataset
     #Normalization and reshaping of input.
@@ -237,7 +237,6 @@ def load_classifications(filename, group_index):
             return correct_classifications, misclassifications
     except (IOError) as error:
         print("Could not open file: ", filename)
-        traceback.print_exc()
         sys.exit(-1)
 
 
@@ -299,7 +298,6 @@ def load_dominant_neurons(filename, group_index):
 
     except (IOError) as error:
         print("Could not open file: ", filename)
-        traceback.print_exc()
         sys.exit(-1)
     except (AttributeError) as error:
         # because we don't know the exact dimensions (number of layers of our network)

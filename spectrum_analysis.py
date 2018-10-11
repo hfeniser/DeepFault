@@ -78,7 +78,6 @@ def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_
             if scores[i][j] >= percentile:
                 dominant_neuron_idx[i].append(j)
 
-    print(dominant_neuron_idx[:-1])
     return dominant_neuron_idx[:-1]
 
 

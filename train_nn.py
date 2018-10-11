@@ -33,8 +33,9 @@ def train_model(args, X_train=None, Y_train=None, X_test=None, Y_test=None):
     :return:
     """
 
-    num_hidden = None if args == None else args['layers']
+    num_hidden = None if args == None else args['hidden']
     num_neuron = None if args == None else args['neurons']
+    activation = args['activation']
 
     if python_version == 2 :
         if num_hidden is None:
@@ -59,8 +60,10 @@ def train_model(args, X_train=None, Y_train=None, X_test=None, Y_test=None):
     # Add hidden layers.
     for _ in range(num_hidden):
         model.add(Dense(num_neuron,  use_bias=False))
-        model.add(LeakyReLU(alpha=.01))
-
+        if activation == 'leaky_relu':
+            model.add(LeakyReLU(alpha=.01))
+        elif activation == 'relu':
+            model.add(Activation('relu'))
     # Add output layer
     model.add(Dense(10, activation='softmax', use_bias=False))
 

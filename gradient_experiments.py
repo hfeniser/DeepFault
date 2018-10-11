@@ -37,7 +37,7 @@ for model_name in model_names:
                 if not list(dominant_indices):
                     log_file.write('No dominant for model ' + str(model_name) + ' for layer ' + str(layer) + ' with faulty percent ' + str(percent) + '.\n')
                     continue
-                
+
                 ###########################
                 ###Test Actual Dominants###
                 ###########################
@@ -47,36 +47,35 @@ for model_name in model_names:
                 print('It lasted: ' + str(end-start))
                 perturbed_xs = np.asarray(perturbed_xs).reshape(np.asarray(perturbed_xs).shape[0], 1, 28, 28)#
                 perturbed_ys = np.asarray(perturbed_ys).reshape(np.asarray(perturbed_ys).shape[0], 10)
-                 
+
                 perturb_file = 'data/' + str(model_name) + '/' + str(model_name) + '_' + str(layer) + '_' + str(d) 
                 save_perturbed_test_groups(perturbed_xs, perturbed_ys,  perturb_file, group_index)
-                
+
                 score = model.evaluate(perturbed_xs, perturbed_ys, verbose=0)
                 log_file.write('Accuracy for model ' + str(model_name) + ' for layer ' + str(layer) + ' with faulty percent ' + str(percent) + ' and distance ' + str(d) + ': ' + str(score) + ' (Actual Dominants).\n')
- 
+
                 #############################
                 ####Test Random Dominants####
                 #############################
                 #select randoms from out of all neurons except from actual faulties.
-                
+
                 random_dominants = random.sample([e for e in range(model.layers[layer].output_shape[1]) if e not in dominant_indices], len(dominant_indices))
                 print(random_dominants)
                 start = datetime.datetime.now()
-                perturbed_xs, perturbed_ys = perturbe(model, X_val, Y_val, layer, random_dominants, correct_classifications, d) 
+                perturbed_xs, perturbed_ys = perturbe(model, X_val, Y_val, layer, random_dominants, correct_classifications, d)
                 end = datetime.datetime.now()
                 print('It lasted: ' + str(end-start))
 
                 perturbed_xs = np.asarray(perturbed_xs).reshape(np.asarray(perturbed_xs).shape[0], 1, 28, 28)#
                 perturbed_ys = np.asarray(perturbed_ys).reshape(np.asarray(perturbed_ys).shape[0], 10)
-                
-                perturb_file += '_random'                
-                save_perturbed_test_groups(perturbed_xs, perturbed_ys,  perturb_file, group_index) 
-                
+
+                perturb_file += '_random'
+                save_perturbed_test_groups(perturbed_xs, perturbed_ys,  perturb_file, group_index)
+
                 score = model.evaluate(perturbed_xs, perturbed_ys, verbose=0)
-                log_file.write('Accuracy for model ' + str(model_name) + ' for layer ' + str(layer) + ' with faulty percent ' + str(percent) + ' and distance ' + str(d) + ': ' + str(score) + '(Random Dominants).\n\n') 
-        
+                log_file.write('Accuracy for model ' + str(model_name) + ' for layer ' + str(layer) + ' with faulty percent ' + str(percent) + ' and distance ' + str(d) + ': ' + str(score) + '(Random Dominants).\n\n')
+
                 log_file.close() 
-        
         exit()
 
 
