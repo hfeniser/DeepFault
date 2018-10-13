@@ -1,7 +1,7 @@
 import os
 import datetime
 distances   = [0.2, 0.1, 0.05, 0.01]
-labels      = [3, 5, 8]
+labels      = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 model_names = ['mnist_test_model_3_50', 'mnist_test_model_5_30', 'mnist_test_model_8_20']
 arch        = [(3,50), (5,30), (8,20)]
 percents    = [90, 95, 99]

@@ -1,13 +1,13 @@
 from keras.models import Sequential
-from keras.layers import Dense, Flatten, LeakyReLU
+from keras.layers import Dense, Flatten, LeakyReLU, Activation
 from utils import get_python_version
 
 python_version = get_python_version()
 
 
-def __save_trained_model(model=None, num_hidden=None, num_neuron=None):
+def __save_trained_model(activation, model=None, num_hidden=None, num_neuron=None):
     directory = "neural_networks/"
-    model_name = 'mnist_test_model_' + str(num_hidden) + '_' + str(num_neuron)
+    model_name = 'mnist_test_model_' + str(num_hidden) + '_' + str(num_neuron) + '_' + str(activation)
     model_filename = directory + model_name + ".json"
     weights_filename = directory + model_name + ".h5"
 
@@ -83,7 +83,7 @@ def train_model(args, X_train=None, Y_train=None, X_test=None, Y_test=None):
     #     score = model.evaluate(X_test, Y_test, verbose=0)
     #     print('[loss, accuracy] -> ' + str(score))
 
-    model_name = __save_trained_model(model, num_hidden, num_neuron)
+    model_name = __save_trained_model(activation, model, num_hidden, num_neuron)
 
     print("Training done")
 

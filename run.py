@@ -122,6 +122,10 @@ if __name__ == "__main__":
     ####################
     # 1)train the neural network and save the network and its weights after the training
     model_name = args['model']
+
+    #if args['activation'] == 'relu':
+    model_name = model_name + '_' + args['activation']
+
     try:
         model = load_model(path.join(model_path, model_name))
     except:
@@ -133,7 +137,7 @@ if __name__ == "__main__":
     #    model_name = args['model']
     #    model = load_model(path.join(model_path, model_name))
 
-    experiment_name = model_name + '_' + args['class'] + '_' + args['activation'] + '_' + args['distance'] + '_' + args['approach'] + '_' + args['percentile']
+    experiment_name = model_name + '_' + args['class'] + '_' + args['distance'] + '_' + args['approach'] + '_' + args['percentile']
     #experiment_name, timestamp = create_experiment_dir(experiment_path, model_name)
 
     # test set becomes validation set (temporary)
@@ -185,16 +189,28 @@ if __name__ == "__main__":
 
         dominant_neuron_idx = [[] for _ in range(len(dominant_neuron_idx_ochiai))]
         num_dominants = len([item for sub in dominant_neuron_idx_ochiai for item in sub])
+
+        t_or_o = random.randint(0,1)
+        available_layers = []
+        if t_or_o == 0:
+            available_layers = [i for i in range(len(dominant_neuron_idx_tarantula)) if len(dominant_neuron_idx_tarantula[i]) > 0]
+        else:
+            available_layers = [i for i in range(len(dominant_neuron_idx_ochiai)) if len(dominant_neuron_idx_ochiai[i]) > 0]
+
+        ##remove duplicate layers
+        available_layers= [al for al in available_layers if al % 2 == 0]
+        print available_layers
+
         added = 0
         while added < num_dominants/2:
+            rand_layer = random.choice(available_layers)
+            rand_idx   = random.randint(0, int(args['neurons'])-1)
 
-            rand_layer = random.randint(0, int(args['hidden'])-1)
-            rand_idx   = random.randint(0, int(args['neurons']))
-
-            if rand_idx not in dominant_neuron_idx_ochiai[2*rand_layer+1] and rand_idx not in dominant_neuron_idx_tarantula[2*rand_layer+1] and rand_idx not in dominant_neuron_idx[2*rand_layer]:
-                dominant_neuron_idx[2*rand_layer].append(rand_idx)
+            if rand_idx not in dominant_neuron_idx_ochiai[rand_layer] and rand_idx not in dominant_neuron_idx_tarantula[rand_layer] and rand_idx not in dominant_neuron_idx[rand_layer]:
+                dominant_neuron_idx[rand_layer].append(rand_idx)
                 added += 1
-        
+        print dominant_neuron_idx
+
     dominant = {x: dominant_neuron_idx[x - 1] for x in range(1, len(dominant_neuron_idx) + 1)}
 
 
@@ -213,10 +229,10 @@ if __name__ == "__main__":
         print dominant_indices
         if len(dominant_indices) == 0:
             logfile.write('Model: ' + str(model_name) + ', Activation: ' +
-                      args['activation'] + ', Class: ' + args['class'] + ', Layer ' + str(layer) +
+                      args['activation'] + ', Class: ' + args['class'] + ', Layer: ' + str(layer) +
                       ', Approach: ' + str(args['approach']) + ', Percentile: '
                       + str(args['percentile']) + ', Distance: ' +
-                          str(args['distance']) + ' Score: No Suspicious. \n')
+                          str(args['distance']) + ', Score: No Suspicious. \n')
             continue
 
         if args['mutate'] is None or args['mutate'] is True:
