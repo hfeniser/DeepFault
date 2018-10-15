@@ -260,10 +260,10 @@ if __name__ == "__main__":
 
         score = model.evaluate(x_perturbed, y_perturbed, verbose=0)
         logfile.write('Model: ' + str(model_name) + ', Activation: ' +
-                      args['activation'] + ', Class: ' + args['class'] + ', Layer ' + str(layer) +
+                      args['activation'] + ', Class: ' + args['class'] + ', Layer: ' + str(layer) +
                       ', Approach: ' + str(args['approach']) + ', Percentile: '
                       + str(args['percentile']) + ', Distance: ' +
-                      str(args['distance']) + ' Score: ' +
+                      str(args['distance']) + ', Score: ' +
                       str(score) + '\n')
         logfile.write('Time: ' + str(end-start) + '\n\n')
 
