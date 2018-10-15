@@ -17,10 +17,10 @@ def parse_logfile(logfile):
 
             ##Make corrections on the string so that it has the form of a
             ##dictionary
-            [left, right] = result.split('Layer')
-            result = left + 'Layer:' + right
-            [left, right] = result.split(' Score')
-            result = left + ', Score' + right
+            #[left, right] = result.split('Layer')
+            #result = left + 'Layer:' + right
+            #[left, right] = result.split(' Score')
+            #result = left + ', Score' + right
 
             elements = result.split(',')
             if not 'No Suspicious' in elements[-1]:
@@ -129,7 +129,7 @@ def calculate_value(results_list, expression):
 
 
 if __name__ == '__main__':
-    results_list = parse_logfile('laughing-waffle/old_experiments/experiment/logfile_leaky_relu.log')
+    results_list = parse_logfile('laughing-waffle/experiment/logfile.log')
 
     percentiles = [90, 95, 99]
     distances   = [0.2, 0.1, 0.05, 0.01]
@@ -144,8 +144,8 @@ if __name__ == '__main__':
     for mn in model_names:
         for approach in approaches:
             for percentile in percentiles:
-                print mn + ' ' + approach + ' ' + str(percentile) + ':'
-                expression = 'result_dict[\'Model\']==\'' + mn + '\' and result_dict[\'Distance\']==\'' + str(distance)+ '\' and result_dict[\'Approach\']==\'' + approach + '\' and result_dict[\'Percentile\']==\'' + str(percentile) + '\''
+                print('Model: ' + mn + ' approach: ' + approach + ' percentile: ' + str(percentile))
+                expression = '\'' + mn + '\' in result_dict[\'Model\'] and result_dict[\'Distance\']==\'' + str(distance)+ '\' and result_dict[\'Approach\']==\'' + approach + '\' and result_dict[\'Percentile\']==\'' + str(percentile) + '\''
                 calculate_value(results_list, expression)
 
     exit()
