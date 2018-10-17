@@ -174,20 +174,84 @@ if __name__ == "__main__":
         try:
             dominant_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
-            dominant_neuron_idx = ochiai_analysis(correct_classifications,
+            dominant_neuron_idx, _ = ochiai_analysis(correct_classifications,
                                                  misclassifications,
                                                  layer_outs,
                                                  int(args['percentile']))
             save_dominant_neurons(dominant_neuron_idx, filename, group_index)
 
+    elif args['approach'] == 'intersection':
+        try:
+            dominant_neuron_idx = load_dominant_neurons(filename, group_index)
+        except:
+            dominant_neuron_idx = coarse_intersection_analysis(correct_classifications,
+                                                 misclassifications,
+                                                 layer_outs)
+            save_dominant_neurons(dominant_neuron_idx, filename, group_index)
+
+    elif args['approach'] == 'dstar':
+        try:
+            dominant_neuron_idx = load_dominant_neurons(filename, group_index)
+        except:
+            dominant_neuron_idx, _ = dstar_analysis(correct_classifications,
+                                                 misclassifications,
+                                                 layer_outs,
+                                                 args['percentile'], 3)
+            save_dominant_neurons(dominant_neuron_idx, filename, group_index)
+
+
+    elif args['approach'] == 'opposite':
+
+        try:
+            dominant_neuron_idx = load_dominant_neurons(filename, group_index)
+        except:
+            dominant_neuron_idx= [[] for i in range(1, len(layer_outs))]
+            _, scores = dstar_analysis(correct_classifications,
+                                        misclassifications, layer_outs,
+                                        int(args['percentile']), 2)
+
+            flat_scores = [item for sublist in scores for item in sublist]
+            percentile = np.nanpercentile(flat_scores, 100 - int(args['percentile']))
+            # percentile = max(flat_scores)
+            for i in range(len(scores)):
+                for j in range(len(scores[i])):
+                    if scores[i][j] <= percentile:
+                        dominant_neuron_idx[i].append(j)
+
+            dominant_neuron_idx = dominant_neuron_idx[:-1]
+            save_dominant_neurons(dominant_neuron_idx, filename, group_index)
+
+            print dominant_neuron_idx
+
     elif args['approach'] == 'random':
-        filename = experiment_path + '/' + model_name + '_' + args['class'] + '_tarantula_' + args['percentile']
+        filename = experiment_path + '/' + model_name + '_' + args['class'] +'_dstar_' + args['percentile']
         dominant_neuron_idx_tarantula = load_dominant_neurons(filename, group_index)
 
         filename = experiment_path + '/' + model_name + '_' + args['class'] + '_ochiai_' + args['percentile']
         dominant_neuron_idx_ochiai = load_dominant_neurons(filename, group_index)
 
         dominant_neuron_idx = [[] for _ in range(len(dominant_neuron_idx_ochiai))]
+
+        t_or_o = random.randint(0,1)
+
+        for d in range(len(dominant_neuron_idx_tarantula)):
+            dominant_t = dominant_neuron_idx_tarantula[d]
+            dominant_o = dominant_neuron_idx_ochiai[d]
+
+            if t_or_o == 0:
+                random_dominants = random.sample([e for e in
+                                                  range(int(args['neurons']))
+                                                  if e not in dominant_t and
+                                                  e not in dominant_o], len(dominant_t))
+            else:
+                random_dominants = random.sample([e for e in
+                                                  range(int(args['neurons']))
+                                                  if e not in dominant_t and
+                                                  e not in dominant_o], len(dominant_o))
+
+            dominant_neuron_idx[d] = random_dominants
+
+        '''
         num_dominants = len([item for sub in dominant_neuron_idx_ochiai for item in sub])
 
         t_or_o = random.randint(0,1)
@@ -210,9 +274,10 @@ if __name__ == "__main__":
                 dominant_neuron_idx[rand_layer].append(rand_idx)
                 added += 1
         print dominant_neuron_idx
+        '''
 
     dominant = {x: dominant_neuron_idx[x - 1] for x in range(1, len(dominant_neuron_idx) + 1)}
-
+    logfile.write('Dominants: ' + str(dominant) + '\n')
 
     ####################
     # 4) Run Mutation Algorithm
@@ -221,12 +286,12 @@ if __name__ == "__main__":
     # suspicious neurons
 
     layers = range(1, len(model.layers)-1)
-
     tot_start = datetime.datetime.now()
     for layer in layers[0::2]:
-        print 'LAYER: ' + str(layer)
+        perturbed_xs = []
+        perturbed_ys = []
         dominant_indices = dominant[layer]
-        print dominant_indices
+
         if len(dominant_indices) == 0:
             logfile.write('Model: ' + str(model_name) + ', Activation: ' +
                       args['activation'] + ', Class: ' + args['class'] + ', Layer: ' + str(layer) +
@@ -234,6 +299,8 @@ if __name__ == "__main__":
                       + str(args['percentile']) + ', Distance: ' +
                           str(args['distance']) + ', Score: No Suspicious. \n')
             continue
+
+#        for dominant_idx in dominant_indices:
 
         if args['mutate'] is None or args['mutate'] is True:
              start = datetime.datetime.now()
@@ -247,28 +314,33 @@ if __name__ == "__main__":
             filename = path.join(experiment_path, filename)
             x_perturbed, y_perturbed = load_perturbed_test_groups(filename, group_index)
 
+        perturbed_xs = perturbed_xs + x_perturbed
+        perturbed_ys = perturbed_ys + y_perturbed
+
+
         # reshape them into the expected format
-        x_perturbed = np.asarray(x_perturbed).reshape(np.asarray(x_perturbed).shape[0], 1, 28, 28)#
-        y_perturbed = np.asarray(y_perturbed).reshape(np.asarray(y_perturbed).shape[0], 10)#
+        perturbed_xs = np.asarray(perturbed_xs).reshape(np.asarray(perturbed_xs).shape[0], 1, 28, 28)#
+        perturbed_ys = np.asarray(perturbed_ys).reshape(np.asarray(perturbed_ys).shape[0], 10)#
+
 
         ####################
         #save perturtbed inputs
         filename = path.join(experiment_path, experiment_name)
         filename = filename + '_layer' + str(layer)
         if args['mutate'] is None or args['mutate'] is True:
-            save_perturbed_test_groups(x_perturbed, y_perturbed, filename, group_index)
+            save_perturbed_test_groups(perturbed_xs, perturbed_ys, filename, group_index)
 
-        score = model.evaluate(x_perturbed, y_perturbed, verbose=0)
+        score = model.evaluate(perturbed_xs, perturbed_ys, verbose=0)
         logfile.write('Model: ' + str(model_name) + ', Activation: ' +
-                      args['activation'] + ', Class: ' + args['class'] + ', Layer: ' + str(layer) +
+                      args['activation'] + ', Class: ' + args['class'] +
                       ', Approach: ' + str(args['approach']) + ', Percentile: '
                       + str(args['percentile']) + ', Distance: ' +
-                      str(args['distance']) + ', Score: ' +
+                      str(args['distance']) + ', Layer: ' + str(layer) +', Score: ' +
                       str(score) + '\n')
         logfile.write('Time: ' + str(end-start) + '\n\n')
 
-    tot_end = datetime.datetime.now()
-    logfile.write('Total Time: ' + str(tot_end-tot_start) + '\n\n')
+        tot_end = datetime.datetime.now()
+        logfile.write('Total Time: ' + str(tot_end-tot_start) + '\n\n')
 
         ####################
         # 5) Test if the mutated inputs are adversarial
