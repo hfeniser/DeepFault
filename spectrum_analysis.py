@@ -135,7 +135,61 @@ def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_out
             if scores[i][j] >= percentile:
                 dominant_neuron_idx[i].append(j)
 
-    return dominant_neuron_idx[:-1]
+    return dominant_neuron_idx[:-1], scores
+
+
+def dstar_analysis(correct_classification_idx, misclassification_idx,
+                   layer_outs, percent, star):
+    scores = []
+    num_cf = []
+    num_uf = []
+    num_cs = []
+    num_us = []
+    for l_out in layer_outs[1:]:
+        num_cf.append(np.zeros(len(l_out[0][0])))
+        num_uf.append(np.zeros(len(l_out[0][0])))
+        num_cs.append(np.zeros(len(l_out[0][0])))
+        num_us.append(np.zeros(len(l_out[0][0])))
+        scores.append(np.zeros(len(l_out[0][0])))
+
+    layer_idx = 0
+    for l_out in layer_outs[1:]:
+        all_neuron_idx = range(len(l_out[0][0]))
+        test_idx = 0
+        for l in l_out[0]:
+            covered_idx   = list(np.where(l > 0)[0])
+            uncovered_idx = list(set(all_neuron_idx)-set(covered_idx))
+
+            if test_idx  in correct_classification_idx:
+                for cov_idx in covered_idx:
+                    num_cs[layer_idx][cov_idx] += 1
+                for uncov_idx in uncovered_idx:
+                    num_us[layer_idx][uncov_idx] += 1
+            elif test_idx in misclassification_idx:
+                for cov_idx in covered_idx:
+                    num_cf[layer_idx][cov_idx] += 1
+                for uncov_idx in uncovered_idx:
+                    num_uf[layer_idx][uncov_idx] += 1
+            test_idx += 1
+        layer_idx += 1
+
+
+    dominant_neuron_idx= [[] for i in range(1, len(layer_outs))]
+
+    for i in range(len(scores)):
+        for j in range(len(scores[i])):
+            score = float(num_cf[i][j]**star) / (num_cs[i][j] + num_uf[i][j])
+            scores[i][j] = score
+
+    flat_scores = [item for sublist in scores for item in sublist]
+    ######!!!!!!!!For some reason it returns nan so i use nanpercentile !!!!!!!!!!!!########
+    percentile = np.nanpercentile(flat_scores, percent)
+    for i in range(len(scores)):
+        for j in range(len(scores[i])):
+            if scores[i][j] >= percentile:
+                dominant_neuron_idx[i].append(j)
+
+    return dominant_neuron_idx[:-1], scores
 
 
 def fine_intersection_analysis(model, predictions, true_classes,
