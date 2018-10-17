@@ -2,6 +2,7 @@ from keras import backend as K
 from collections import defaultdict
 import numpy as np
 from utils import get_layer_outs
+import math
 
 #Provide a seed for reproducability
 np.random.seed(7)
@@ -70,7 +71,8 @@ def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_
             # if score > 0.53:  # TODO: threshold for identifying the dominant neurons. value via experimentation?
             #     dominant_neuron_idx[i].append(j)
 
-    flat_scores = [item for sublist in scores for item in sublist]
+    flat_scores = [float(item) for sublist in scores for item in sublist if not
+                  math.isnan(item)]
     percentile = np.percentile(flat_scores, percent)
     # percentile = max(flat_scores)
     for i in range(len(scores)):
@@ -126,9 +128,11 @@ def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_out
             #if score > 0.29:  # TODO: Threshold? for identifying the dominant neurons. value via experimentation?
             #    dominant_neuron_idx[i].append(j)
 
-    flat_scores = [item for sublist in scores for item in sublist]
+    flat_scores = [float(item) for sublist in scores for item in sublist if not
+                  math.isnan(item)]
     ######!!!!!!!!For some reason it returns nan so i use nanpercentile !!!!!!!!!!!!########
     percentile = np.nanpercentile(flat_scores, percent)
+
     # percentile = max(flat_scores)
     for i in range(len(scores)):
         for j in range(len(scores[i])):
@@ -181,7 +185,8 @@ def dstar_analysis(correct_classification_idx, misclassification_idx,
             score = float(num_cf[i][j]**star) / (num_cs[i][j] + num_uf[i][j])
             scores[i][j] = score
 
-    flat_scores = [item for sublist in scores for item in sublist]
+    flat_scores = [float(item) for sublist in scores for item in sublist if not
+                  math.isnan(item)]
     ######!!!!!!!!For some reason it returns nan so i use nanpercentile !!!!!!!!!!!!########
     percentile = np.nanpercentile(flat_scores, percent)
     for i in range(len(scores)):
