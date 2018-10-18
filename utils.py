@@ -1,3 +1,4 @@
+
 from keras.datasets import mnist, cifar
 from keras.utils import np_utils
 from keras.models import model_from_json
@@ -11,6 +12,7 @@ import h5py
 from datetime import datetime
 from os import path, makedirs
 import traceback
+import math
 
 def load_CIFAR():
     (X_train, y_train), (X_test, y_test) = cifar10.load_data()
@@ -367,4 +369,30 @@ def weight_analysis(model):
 def normalize(x):
     # utility function to normalize a tensor by its L2 norm
     return x / (K.sqrt(K.mean(K.square(x))) + 1e-5)
+
+def find_indices(scores, which_end, size, available_layers=None):
+
+
+    flat_scores = [float(item) for sublist in scores for item in sublist if not
+                   math.isnan(float(item))]
+
+    print sorted(flat_scores)
+    if which_end == 'lowest':
+        relevant_vals = sorted(flat_scores)[:size]
+    else:
+        relevant_vals = sorted(flat_scores, reverse=True)[:size]
+
+    print relevant_vals
+
+    relevant_indices = []
+    for i in range(len(scores)):
+        for j in range(len(scores[i])):
+            if scores[i][j] in relevant_vals:
+                if available_layers == None:
+                    relevant_indices.append((i,j))
+                else:
+                    relevant_indices.append((available_layers[i],j))
+            if len(relevant_indices) == size:
+                break
+    return relevant_indices
 

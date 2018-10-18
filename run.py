@@ -12,7 +12,7 @@ from weighted_analysis import *
 from utils import create_experiment_dir, save_perturbed_test_groups, load_perturbed_test_groups
 from utils import load_dominant_neurons, save_dominant_neurons
 from utils import load_classifications, save_classifications, save_layer_outs, load_layer_outs
-from utils import find_class_of, load_data
+from utils import find_class_of, load_data, find_indices
 from mutate_via_gradient import mutate
 from sklearn.model_selection import train_test_split
 from saliency_map_analysis import saliency_map_analysis
@@ -51,7 +51,9 @@ def parse_arguments():
     parser.add_argument("-P", "--percentile", help="the percentage of suspicious neurons in all neurons.")
     parser.add_argument("-C", "--class", help="the label of inputs to analyze.")
     parser.add_argument("-MU", "--mutate", help="whether to mutate inputs or load previously mutated inputs")
-    parser.add_argument("-AC", "--activation", help="activation function or  hidden neurons. it can be \"relu\" or \"leaky_relu\"")
+    parser.add_argument("-AC", "--activation", help="activation function or hidden neurons. it can be \"relu\" or \"leaky_relu\"")
+    parser.add_argument("-S", "--suspicious_num", help="number of suspicious neurons we consider")
+    parser.add_argument("-R", "--repeat", help="index of the repeating. (for the cases where we run the same experiment multiple times)")
     parser.add_argument("-LOG", "--logfile", help="path to log file")
 
     # parse command-line arguments
@@ -137,7 +139,9 @@ if __name__ == "__main__":
     #    model_name = args['model']
     #    model = load_model(path.join(model_path, model_name))
 
-    experiment_name = model_name + '_' + args['class'] + '_' + args['distance'] + '_' + args['approach'] + '_' + args['percentile']
+    experiment_name = model_name + '_' + str(args['class']) + '_' + \
+    str(args['distance']) + '_' + args['approach'] + '_SN' + \
+    str(args['suspicious_num']) + '_R' + str(args['repeat'])
     #experiment_name, timestamp = create_experiment_dir(experiment_path, model_name)
 
     # test set becomes validation set (temporary)
@@ -159,25 +163,34 @@ if __name__ == "__main__":
 
     ####################
     # 3) Receive the correct classifications  & misclassifications and identify the dominant neurons per layer
-    filename = experiment_path + '/' + model_name + '_' + args['class'] + '_' + args['approach'] + '_' + args['percentile']
+    filename = experiment_path + '/' + model_name + '_' + args['class'] + '_' +\
+    args['approach'] +  '_SN' +  str(args['suspicious_num'])
+
     if args['approach'] == 'tarantula':
         try:
             dominant_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
             dominant_neuron_idx = tarantula_analysis(correct_classifications,
                                                  misclassifications,
-                                                 layer_outs,
-                                                 int(args['percentile']))
+                                                 layer_outs,90)#temporary 90
             save_dominant_neurons(dominant_neuron_idx, filename, group_index)
 
     elif args['approach'] == 'ochiai':
         try:
             dominant_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
-            dominant_neuron_idx, _ = ochiai_analysis(correct_classifications,
+            _, scores = ochiai_analysis(correct_classifications,
                                                  misclassifications,
-                                                 layer_outs,
-                                                 int(args['percentile']))
+                                                 layer_outs, 90)#temporary 90 
+
+            available_layers = range(1,len(model.layers)-1,2)
+            filtered_scores = []
+            for al in available_layers:
+                filtered_scores.append(scores[al])
+
+            dominant_neuron_idx = find_indices(filtered_scores, 'highest',
+                                               int(args['suspicious_num']),
+                                               available_layers)
             save_dominant_neurons(dominant_neuron_idx, filename, group_index)
 
     elif args['approach'] == 'intersection':
@@ -205,11 +218,29 @@ if __name__ == "__main__":
         try:
             dominant_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
-            dominant_neuron_idx= [[] for i in range(1, len(layer_outs))]
-            _, scores = dstar_analysis(correct_classifications,
+            _, scores = ochiai_analysis(correct_classifications,
                                         misclassifications, layer_outs,
-                                        int(args['percentile']), 2)
+                                        90) #temporary 90
 
+            filename_ochiai = experiment_path + '/' + model_name + '_' + \
+            str(args['class']) + '_ochiai_' + 'SN' + str(args['suspicious_num'])
+            dominant_neuron_idx_ochiai = load_dominant_neurons(filename_ochiai, group_index)
+            
+            available_layers = []
+            filtered_scores = []
+            for dom_ochiai in dominant_neuron_idx_ochiai:
+                if dom_ochiai[0] not in available_layers:
+                    available_layers.append(dom_ochiai[0])
+                    filtered_scores.append(scores[dom_ochiai[0]])
+
+            dominant_neuron_idx = find_indices(filtered_scores, 'lowest',
+                                               int(args['suspicious_num']),
+                                               available_layers)
+            print dominant_neuron_idx
+            
+            save_dominant_neurons(dominant_neuron_idx, filename, group_index)
+
+            '''
             flat_scores = [item for sublist in scores for item in sublist]
             percentile = np.nanpercentile(flat_scores, 100 - int(args['percentile']))
             # percentile = max(flat_scores)
@@ -219,17 +250,36 @@ if __name__ == "__main__":
                         dominant_neuron_idx[i].append(j)
 
             dominant_neuron_idx = dominant_neuron_idx[:-1]
-            save_dominant_neurons(dominant_neuron_idx, filename, group_index)
-
-            print dominant_neuron_idx
+            '''
 
     elif args['approach'] == 'random':
-        filename = experiment_path + '/' + model_name + '_' + args['class'] +'_dstar_' + args['percentile']
-        dominant_neuron_idx_tarantula = load_dominant_neurons(filename, group_index)
+        filename = experiment_path + '/' + model_name + '_' + args['class'] + \
+        '_opposite_' + 'SN' + str(args['suspicious_num'])
 
-        filename = experiment_path + '/' + model_name + '_' + args['class'] + '_ochiai_' + args['percentile']
+        dominant_neuron_idx_opposite = load_dominant_neurons(filename, group_index)
+
+        filename = experiment_path + '/' + model_name + '_' + args['class'] + \
+        '_ochiai_' + 'SN' + str(args['suspicious_num'])
+
         dominant_neuron_idx_ochiai = load_dominant_neurons(filename, group_index)
 
+
+        forbiddens = dominant_neuron_idx_ochiai + dominant_neuron_idx_opposite
+        forbiddens = [list(forb) for forb in forbiddens]
+        print forbiddens
+
+        available_layers = list(set([elem[0] for elem in dominant_neuron_idx_ochiai]))
+        dominant_neuron_idx = []
+        while len(dominant_neuron_idx) < int(args['suspicious_num']):
+            l_idx = random.choice(available_layers)
+            n_idx = random.choice(range(args['neurons']))
+
+            if [l_idx, n_idx] not in forbiddens and [l_idx, n_idx] not in dominant_neuron_idx:
+                dominant_neuron_idx.append([l_idx, n_idx])
+
+        #filename = filename + '_R' + str(args['repeat'])
+
+        '''
         dominant_neuron_idx = [[] for _ in range(len(dominant_neuron_idx_ochiai))]
 
         t_or_o = random.randint(0,1)
@@ -251,7 +301,8 @@ if __name__ == "__main__":
 
             dominant_neuron_idx[d] = random_dominants
 
-        '''
+        ###################
+
         num_dominants = len([item for sub in dominant_neuron_idx_ochiai for item in sub])
 
         t_or_o = random.randint(0,1)
@@ -276,8 +327,10 @@ if __name__ == "__main__":
         print dominant_neuron_idx
         '''
 
-    dominant = {x: dominant_neuron_idx[x - 1] for x in range(1, len(dominant_neuron_idx) + 1)}
-    logfile.write('Dominants: ' + str(dominant) + '\n')
+    print dominant_neuron_idx
+
+    #dominant = {x: dominant_neuron_idx[x - 1] for x in range(1, len(dominant_neuron_idx) + 1)}
+    logfile.write('Dominants: ' + str(dominant_neuron_idx) + '\n')
 
     ####################
     # 4) Run Mutation Algorithm
@@ -285,66 +338,65 @@ if __name__ == "__main__":
     # the correct classifications (from the testing set) that exercise the
     # suspicious neurons
 
-    layers = range(1, len(model.layers)-1)
+    #layers = range(1, len(model.layers)-1)
     tot_start = datetime.datetime.now()
-    for layer in layers[0::2]:
-        perturbed_xs = []
-        perturbed_ys = []
-        dominant_indices = dominant[layer]
+    #for layer in layers[0::2]:
+    perturbed_xs = []
+    perturbed_ys = []
+    #dominant_indices = dominant[layer]
 
-        if len(dominant_indices) == 0:
-            logfile.write('Model: ' + str(model_name) + ', Activation: ' +
-                      args['activation'] + ', Class: ' + args['class'] + ', Layer: ' + str(layer) +
-                      ', Approach: ' + str(args['approach']) + ', Percentile: '
-                      + str(args['percentile']) + ', Distance: ' +
-                          str(args['distance']) + ', Score: No Suspicious. \n')
-            continue
+#    if len(dominant_indices) == 0:
+#        logfile.write('Model: ' + str(model_name) + ', Activation: ' +
+#                  args['activation'] + ', Class: ' + args['class'] + ', Layer: ' + str(layer) +
+#                  ', Approach: ' + str(args['approach']) + ', Percentile: '
+#                  + str(args['percentile']) + ', Distance: ' +
+#                      str(args['distance']) + ', Score: No Suspicious. \n')
+#        continue
 
 #        for dominant_idx in dominant_indices:
 
-        if args['mutate'] is None or args['mutate'] is True:
-             start = datetime.datetime.now()
-             x_perturbed, y_perturbed = mutate(model, X_val, Y_val, layer,
-                                               dominant_indices,
-                                               correct_classifications,
-                                               float(args['distance']))
-             end = datetime.datetime.now()
-        else:
-            filename = args['mutate'] + args['approach']
-            filename = path.join(experiment_path, filename)
-            x_perturbed, y_perturbed = load_perturbed_test_groups(filename, group_index)
+    if args['mutate'] is None or args['mutate'] is True:
+         start = datetime.datetime.now()
+         x_perturbed, y_perturbed = mutate(model, X_val, Y_val,
+                                           dominant_neuron_idx,
+                                           correct_classifications,
+                                           float(args['distance']))
+         end = datetime.datetime.now()
+    else:
+        filename = args['mutate'] + args['approach']
+        filename = path.join(experiment_path, filename)
+        x_perturbed, y_perturbed = load_perturbed_test_groups(filename, group_index)
 
-        perturbed_xs = perturbed_xs + x_perturbed
-        perturbed_ys = perturbed_ys + y_perturbed
-
-
-        # reshape them into the expected format
-        perturbed_xs = np.asarray(perturbed_xs).reshape(np.asarray(perturbed_xs).shape[0], 1, 28, 28)#
-        perturbed_ys = np.asarray(perturbed_ys).reshape(np.asarray(perturbed_ys).shape[0], 10)#
+    perturbed_xs = perturbed_xs + x_perturbed
+    perturbed_ys = perturbed_ys + y_perturbed
 
 
-        ####################
-        #save perturtbed inputs
-        filename = path.join(experiment_path, experiment_name)
-        filename = filename + '_layer' + str(layer)
-        if args['mutate'] is None or args['mutate'] is True:
-            save_perturbed_test_groups(perturbed_xs, perturbed_ys, filename, group_index)
+    # reshape them into the expected format
+    perturbed_xs = np.asarray(perturbed_xs).reshape(np.asarray(perturbed_xs).shape[0], 1, 28, 28)#
+    perturbed_ys = np.asarray(perturbed_ys).reshape(np.asarray(perturbed_ys).shape[0], 10)#
 
-        score = model.evaluate(perturbed_xs, perturbed_ys, verbose=0)
-        logfile.write('Model: ' + str(model_name) + ', Activation: ' +
-                      args['activation'] + ', Class: ' + args['class'] +
-                      ', Approach: ' + str(args['approach']) + ', Percentile: '
-                      + str(args['percentile']) + ', Distance: ' +
-                      str(args['distance']) + ', Layer: ' + str(layer) +', Score: ' +
-                      str(score) + '\n')
-        logfile.write('Time: ' + str(end-start) + '\n\n')
 
-        tot_end = datetime.datetime.now()
-        logfile.write('Total Time: ' + str(tot_end-tot_start) + '\n\n')
+    ####################
+    #save perturtbed inputs
+    filename = path.join(experiment_path, experiment_name)
+    #filename = filename + '_layer' + str(layer)
+    if args['mutate'] is None or args['mutate'] is True:
+        save_perturbed_test_groups(perturbed_xs, perturbed_ys, filename, group_index)
 
-        ####################
-        # 5) Test if the mutated inputs are adversarial
-        #test_model(model, x_perturbed, y_perturbed)
+    score = model.evaluate(perturbed_xs, perturbed_ys, verbose=0)
+    logfile.write('Model: ' + str(model_name) + ', Activation: ' +
+                  args['activation'] + ', Class: ' + args['class'] +
+                  ', Approach: ' + str(args['approach']) + ', Distance: ' +
+                  str(args['distance']) + ', Score: ' +
+                  str(score) + '\n')
+    logfile.write('Time: ' + str(end-start) + '\n\n')
+
+    tot_end = datetime.datetime.now()
+    logfile.write('Total Time: ' + str(tot_end-tot_start) + '\n\n')
+
+    ####################
+    # 5) Test if the mutated inputs are adversarial
+    #test_model(model, x_perturbed, y_perturbed)
 
     logfile.close()
 
