@@ -1,7 +1,7 @@
 import os
 import datetime
 distances   = [0.2, 0.1, 0.05, 0.01]
-labels      = [0,3,4,7,9]
+labels      = [0,1,3,4,6,8,9]
 model_names = ['mnist_test_model_5_30', 'mnist_test_model_8_20',
                'mnist_test_model_6_25']
 arch        = [(5,30), (8,20), (6,25)]
@@ -9,7 +9,7 @@ percents    = [90, 95, 99]
 activations = ['leaky_relu']
 techniques  = ['ochiai', 'opposite', 'random']
 repeat      = [1,2,3,4,5]
-suspics_num = [2,3,5]
+suspics_num = [1,2,3,5,10]
 
 for distance in distances:
     for label in labels:
@@ -31,4 +31,3 @@ for distance in distances:
                         logfile = open('experiment/logfile.log','a')
                         logfile.write('Total time (including preperations): ' + str(end-start))
                         logfile.close()
-            exit()
