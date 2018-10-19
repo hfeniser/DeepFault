@@ -9,11 +9,16 @@ def parse_logfile(logfile):
 
     content = [line.strip() for line in content]
 
-    results_list =[]
+    scores     = []
+    parameters = []
+
     for line in content:
+        if line[:8] == '{\'mutate':
+            param_dict = ast.literal_eval(line)
+            parameters.append(param_dict)
+
         if line[:5] == 'Model':
 
-            result = line
 
             ##Make corrections on the string so that it has the form of a
             ##dictionary
@@ -22,11 +27,15 @@ def parse_logfile(logfile):
             #[left, right] = result.split(' Score')
             #result = left + ', Score' + right
 
-            elements = result.split(',')
-            if not 'No Suspicious' in elements[-1]:
-                list_elem = elements[-2] + ', ' + elements[-1]
-                elements[-2] = list_elem
-                elements = elements[:-1]
+            elements = line.split(': ')
+            score = elements[-1]
+            scores.append(ast.literal_eval(score))
+
+
+            '''
+            list_elem = elements[-2] + ', ' + elements[-1]
+            elements[-2] = list_elem
+            elements = elements[:-1]
 
             result = ''
             for elem in elements:
@@ -41,9 +50,9 @@ def parse_logfile(logfile):
             result = '{' + result + '}'
             result_dict = ast.literal_eval(result)
             results_list.append(result_dict)
-
-    return results_list
-
+            '''
+            
+    return parameters, scores
 
 def generate_latex(results_list):
     doc = Document("LatexTables")
@@ -111,42 +120,61 @@ def generate_latex(results_list):
     doc.generate_pdf(clean_tex=False)
 
 
-def calculate_value(results_list, expression):
+def calculate_value(parameters, scores, expression):
     acc = 0
     cnt = 0
-    for result_dict in results_list:
-        if eval(expression):
-            cnt += 1
-            if 'No Suspicious' not in result_dict['Score'] :
-                score = result_dict['Score'][1:-1].split(',')
-                acc += float(score[1])
+    loss = 0
+    for i in range(len(parameters)):
 
-    print acc
-    print cnt
+        param_dict = parameters[i]
+        if eval(expression):
+            #print param_dict
+            cnt += 1
+            score = scores[i]
+            acc += float(score[1])
+            loss += float(score[0])
+
+    #print loss
+    #print acc
+    #print cnt
+    average_loss = loss/cnt
+    average_acc  = acc/cnt
+    print 'Average loss: ' + str(average_loss)
+    print 'Average acc: ' + str(average_acc)
+    print 'Number of experiments: ' + str(cnt)
     print '-------'
 
     return 50
 
 
 if __name__ == '__main__':
-    results_list = parse_logfile('laughing-waffle/experiment/logfile.log')
+    parameters, scores = parse_logfile('laughing-waffle/experiment/logfile.log')
+#    results_list = parse_logfile('merged.log')
 
+    print len(parameters)
+    print len(scores)
     percentiles = [90, 95, 99]
     distances   = [0.2, 0.1, 0.05, 0.01]
-    approaches  = ['tarantula', 'ochiai', 'random']
+    approaches  = ['ochiai', 'random', 'opposite']
     activations = ['relu', 'leaky_relu']
-    classes     = [0,1,2,3,4,5,6,7,8,9]
-    model_names = ['mnist_test_model_3_50', 'mnist_test_model_5_30',
-                   'mnist_test_model_8_20']
+    classes     = [0,1,3,4,6]
+    susp_num    = [1,2,3,5,10]
+    model_names = ['mnist_test_model_5_30', 'mnist_test_model_8_20']
 
     ##########EXP1#############
-    distance = distances[0]
+    distance = distances[1]
+    label = classes[0]
     for mn in model_names:
-        for approach in approaches:
-            for percentile in percentiles:
-                print('Model: ' + mn + ' approach: ' + approach + ' percentile: ' + str(percentile))
-                expression = '\'' + mn + '\' in result_dict[\'Model\'] and result_dict[\'Distance\']==\'' + str(distance)+ '\' and result_dict[\'Approach\']==\'' + approach + '\' and result_dict[\'Percentile\']==\'' + str(percentile) + '\''
-                calculate_value(results_list, expression)
+        #for label in classes:
+        for sn in susp_num:
+            for approach in approaches:
+                print('Model: ' + mn + ' approach: ' + approach + ' sn: ' +\
+                      str(sn) + ' label: all') #+ str(label))
+                expression = '\'' + mn + '\' in param_dict[\'model\'] and param_dict[\'approach\']==\'' +\
+                        approach + '\' and param_dict[\'suspicious_num\']==\'' + str(sn) + '\'' + \
+                        ' and param_dict[\'distance\'] ==\'' + str(distance) + \
+                        '\'' #and param_dict[\'class\']==\'' + str(label) +'\''
+                calculate_value(parameters, scores, expression)
 
     exit()
     generate_latex(results_list)
