@@ -80,7 +80,7 @@ def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_
             if scores[i][j] >= percentile:
                 dominant_neuron_idx[i].append(j)
 
-    return dominant_neuron_idx[:-1]
+    return dominant_neuron_idx[:-1], scores
 
 
 def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_outs, percent):
@@ -187,12 +187,15 @@ def dstar_analysis(correct_classification_idx, misclassification_idx,
 
     flat_scores = [float(item) for sublist in scores for item in sublist if not
                   math.isnan(item)]
+
+    '''
     ######!!!!!!!!For some reason it returns nan so i use nanpercentile !!!!!!!!!!!!########
     percentile = np.nanpercentile(flat_scores, percent)
     for i in range(len(scores)):
         for j in range(len(scores[i])):
             if scores[i][j] >= percentile:
                 dominant_neuron_idx[i].append(j)
+    '''
 
     return dominant_neuron_idx[:-1], scores
 

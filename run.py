@@ -170,9 +170,19 @@ if __name__ == "__main__":
         try:
             dominant_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
-            dominant_neuron_idx = tarantula_analysis(correct_classifications,
+            _, scores = tarantula_analysis(correct_classifications,
                                                  misclassifications,
                                                  layer_outs,90)#temporary 90
+
+            available_layers = range(1,len(model.layers)-1,2)
+            filtered_scores = []
+            for al in available_layers:
+                filtered_scores.append(scores[al])
+
+            dominant_neuron_idx = find_indices(filtered_scores, 'highest',
+                                               int(args['suspicious_num']),
+                                               available_layers)
+
             save_dominant_neurons(dominant_neuron_idx, filename, group_index)
 
     elif args['approach'] == 'ochiai':
@@ -193,23 +203,24 @@ if __name__ == "__main__":
                                                available_layers)
             save_dominant_neurons(dominant_neuron_idx, filename, group_index)
 
-    elif args['approach'] == 'intersection':
-        try:
-            dominant_neuron_idx = load_dominant_neurons(filename, group_index)
-        except:
-            dominant_neuron_idx = coarse_intersection_analysis(correct_classifications,
-                                                 misclassifications,
-                                                 layer_outs)
-            save_dominant_neurons(dominant_neuron_idx, filename, group_index)
-
     elif args['approach'] == 'dstar':
         try:
             dominant_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
-            dominant_neuron_idx, _ = dstar_analysis(correct_classifications,
+            _, scores = dstar_analysis(correct_classifications,
                                                  misclassifications,
                                                  layer_outs,
                                                  args['percentile'], 3)
+
+            available_layers = range(1,len(model.layers)-1,2)
+            filtered_scores = []
+            for al in available_layers:
+                filtered_scores.append(scores[al])
+
+            dominant_neuron_idx = find_indices(filtered_scores, 'highest',
+                                               int(args['suspicious_num']),
+                                               available_layers)
+
             save_dominant_neurons(dominant_neuron_idx, filename, group_index)
 
 
@@ -225,7 +236,7 @@ if __name__ == "__main__":
             filename_ochiai = experiment_path + '/' + model_name + '_' + \
             str(args['class']) + '_ochiai_' + 'SN' + str(args['suspicious_num'])
             dominant_neuron_idx_ochiai = load_dominant_neurons(filename_ochiai, group_index)
-            
+
             available_layers = []
             filtered_scores = []
             for dom_ochiai in dominant_neuron_idx_ochiai:
