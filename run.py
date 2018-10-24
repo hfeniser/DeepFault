@@ -265,7 +265,7 @@ if __name__ == "__main__":
 
     elif args['approach'] == 'random':
         filename = experiment_path + '/' + model_name + '_' + args['class'] + \
-        '_opposite_' + 'SN' + str(args['suspicious_num'])
+        '_tarantula_' + 'SN' + str(args['suspicious_num'])
 
         dominant_neuron_idx_opposite = load_dominant_neurons(filename, group_index)
 

@@ -1,13 +1,13 @@
 import os
 import datetime
 distances   = [0.2, 0.1, 0.05, 0.01]
-labels      = [0,1,3,4,6,8,9]
+labels      = [0,1,3]
 model_names = ['mnist_test_model_5_30', 'mnist_test_model_8_20',
                'mnist_test_model_6_25']
 arch        = [(5,30), (8,20), (6,25)]
 percents    = [90, 95, 99]
 activations = ['leaky_relu']
-techniques  = ['ochiai', 'opposite', 'random']
+techniques  = ['ochiai', 'tarantula', 'random']
 repeat      = [1,2,3,4,5]
 suspics_num = [1,2,3,5,10]
 
@@ -17,6 +17,12 @@ for distance in distances:
             for tech in techniques:
                 for sn in suspics_num:
                     for rep in repeat:
+                        print tech
+                        print repeat
+                        if (not tech == 'random') and rep > 1:
+                            print 'hello'
+                            continue
+
                         command = 'python run.py -A ' + tech + ' -N ' + \
                         str(arch[model_names.index(model_name)][1]) + ' -HL ' +\
                         str(arch[model_names.index(model_name)][0]) + ' -C ' +\

@@ -4,8 +4,7 @@ from utils import load_model, load_data, get_layer_outs, normalize
 
 
 def mutate(model, X_val, Y_val, dominant_indices, correct_classifications, d):
-    print dominant_indices
-    print '**********'
+
 
     input_tensor = model.layers[0].output
 
@@ -19,23 +18,32 @@ def mutate(model, X_val, Y_val, dominant_indices, correct_classifications, d):
             grads = K.gradients(loss, input_tensor)[0]
             iterate = K.function([input_tensor], [loss, grads])
             loss_val, grad_vals = iterate([np.expand_dims(flatX, axis=0)])
-            grads_for_doms.append(grad_vals) 
+            grads_for_doms.append(grad_vals)
 
         c1 = 0
         c2 = 0
-        print len(grads_for_doms)
         perturbed_x = []
         for i in range(len(flatX)):
 
             allAgree = True
             min_abs_grad = float('inf')
-
+            sum_grad = 0
             for j in range(len(grads_for_doms)):
+                sum_grad += grads_for_doms[j][0][i]
                 if min_abs_grad < abs(grads_for_doms[j][0][i]):
                     min_abs_grad = abs(grads_for_doms[j][0][i])
                 if not j == 0 and not np.sign(grads_for_doms[j-1][0][i]) == np.sign(grads_for_doms[j][0][i]):
                     allAgree = False
 
+            avg_grad = float(sum_grad) / len(dominant_indices)
+            if avg_grad > d:
+                avg_grad = d
+            elif avg_grad < -d:
+                avg_grad = -d
+
+            perturbed_x.append(max(min(flatX[i] + avg_grad, 1), 0))
+
+            '''
             if min_abs_grad > d:
                 min_abs_grad = d
 
@@ -47,6 +55,7 @@ def mutate(model, X_val, Y_val, dominant_indices, correct_classifications, d):
                 #c2 += 1
             else:
                 perturbed_x.append(flatX[i])
+            '''
 
         perturbed_set_x.append(perturbed_x)
         perturbed_set_y.append(y)
