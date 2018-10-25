@@ -1,16 +1,20 @@
 from keras import backend as K
 import numpy as np
 from utils import load_model, load_data, get_layer_outs, normalize
-
+import random
 
 def mutate(model, X_val, Y_val, dominant_indices, correct_classifications, d):
-
 
     input_tensor = model.layers[0].output
 
     perturbed_set_x = []
     perturbed_set_y = []
-    for x, y in zip(list(np.array(X_val)[correct_classifications])[:10], list(np.array(Y_val)[correct_classifications])[:10]):
+
+    #selct 10 inputs randomly from the correct classification set.
+    zipped_random_data = random(zip(list(np.array(X_val)[correct_classifications]),
+                            list(np.array(Y_val)[correct_classifications])), 10)
+
+    for x, y in zipped_random_data:
         grads_for_doms = []
         flatX = [item for sublist in x[0] for item in sublist]
         for dom in dominant_indices:
@@ -60,7 +64,7 @@ def mutate(model, X_val, Y_val, dominant_indices, correct_classifications, d):
         perturbed_set_x.append(perturbed_x)
         perturbed_set_y.append(y)
 
-
+    '''
     for xv, xp in zip(list(np.array(X_val)[correct_classifications])[:10], perturbed_set_x):
 
         xv = np.asarray(xv).reshape(1, 1, 28, 28)
@@ -77,8 +81,11 @@ def mutate(model, X_val, Y_val, dominant_indices, correct_classifications, d):
             print(layer_outs[dom[0]][0][0][dom[1]])
 
         print('========')
+    '''
 
     return perturbed_set_x, perturbed_set_y
+
+
 
 '''
         for j in range(len(grads_for_doms)): ##
