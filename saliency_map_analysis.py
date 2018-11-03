@@ -54,10 +54,10 @@ class JacobianSaliency(object):
 def saliency_map_analysis(correct_classification_idx, misclassification_idx, layer_outs, model, predictions):
 
     scores = []
-    dominant_neuron_idx = []
+    suspicious_neuron_idx = []
     for l_out in layer_outs:
         scores.append(np.zeros(len(l_out[0][0])))
-        dominant_neuron_idx.append([])
+        suspicious_neuron_idx.append([])
 
     for layer_idx in range(1, len(layer_outs[1:])):
         test_idx = 0
@@ -80,4 +80,4 @@ def saliency_map_analysis(correct_classification_idx, misclassification_idx, lay
     for i in range(len(scores)):
         for j in range(len(scores[i])):
             if scores[i][j] > 200: #score threshold, what's the correct value? maybe can be found through experiments?
-                dominant_neuron_idx[i].append(j)
+                suspicious_neuron_idx[i].append(j)

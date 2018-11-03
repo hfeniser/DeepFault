@@ -52,7 +52,8 @@ def parse_arguments():
     parser.add_argument("-C", "--class", help="the label of inputs to analyze.")
     parser.add_argument("-MU", "--mutate", help="whether to mutate inputs or load previously mutated inputs")
     parser.add_argument("-AC", "--activation", help="activation function or hidden neurons. it can be \"relu\" or \"leaky_relu\"")
-    parser.add_argument("-S", "--suspicious_num", help="number of suspicious neurons we consider")
+    parser.add_argument("-SN", "--suspicious_num", help="number of suspicious neurons we consider")
+    parser.add_argument("-SS", "--step_size", help="multiplication of gradients by step size")
     parser.add_argument("-R", "--repeat", help="index of the repeating. (for the cases where we run the same experiment multiple times)")
     parser.add_argument("-LOG", "--logfile", help="path to log file")
 
@@ -140,7 +141,7 @@ if __name__ == "__main__":
     #    model = load_model(path.join(model_path, model_name))
 
     experiment_name = model_name + '_' + str(args['class']) + '_' + \
-    str(args['distance']) + '_' + args['approach'] + '_SN' + \
+    str(args['step_size']) + '_' + args['approach'] + '_SN' + \
     str(args['suspicious_num']) + '_R' + str(args['repeat'])
     #experiment_name, timestamp = create_experiment_dir(experiment_path, model_name)
 
@@ -168,26 +169,26 @@ if __name__ == "__main__":
 
     if args['approach'] == 'tarantula':
         try:
-            dominant_neuron_idx = load_dominant_neurons(filename, group_index)
+            suspicious_neurons_idx = load_dominant_neurons(filename, group_index)
         except:
-            _, scores = tarantula_analysis(correct_classifications,
+            suspicious_neurons_idx = tarantula_analysis(correct_classifications,
                                                  misclassifications,
-                                                 layer_outs,90)#temporary 90
+                                                 layer_outs,model,
+                                                 int(args['suspicious_num']))
 
-            available_layers = range(1,len(model.layers)-1,2)
-            filtered_scores = []
-            for al in available_layers:
-                filtered_scores.append(scores[al])
+            # filtered_scores = []
+            # for al in available_layers:
+            #     filtered_scores.append(scores[al])
 
-            dominant_neuron_idx = find_indices(filtered_scores, 'highest',
-                                               int(args['suspicious_num']),
-                                               available_layers)
+            # suspicious_neuron_idx = find_indices(filtered_scores, 'highest',
+            #                                    int(args['suspicious_num']),
+            #                                    available_layers)
 
-            save_dominant_neurons(dominant_neuron_idx, filename, group_index)
+            save_dominant_neurons(suspicious_neurons_idx, filename, group_index)
 
     elif args['approach'] == 'ochiai':
         try:
-            dominant_neuron_idx = load_dominant_neurons(filename, group_index)
+            suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
             _, scores = ochiai_analysis(correct_classifications,
                                                  misclassifications,
@@ -198,14 +199,14 @@ if __name__ == "__main__":
             for al in available_layers:
                 filtered_scores.append(scores[al])
 
-            dominant_neuron_idx = find_indices(filtered_scores, 'highest',
+            suspicious_neuron_idx = find_indices(filtered_scores, 'highest',
                                                int(args['suspicious_num']),
                                                available_layers)
-            save_dominant_neurons(dominant_neuron_idx, filename, group_index)
+            save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
 
     elif args['approach'] == 'dstar':
         try:
-            dominant_neuron_idx = load_dominant_neurons(filename, group_index)
+            suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
             _, scores = dstar_analysis(correct_classifications,
                                                  misclassifications,
@@ -217,17 +218,17 @@ if __name__ == "__main__":
             for al in available_layers:
                 filtered_scores.append(scores[al])
 
-            dominant_neuron_idx = find_indices(filtered_scores, 'highest',
+            suspicious_neuron_idx = find_indices(filtered_scores, 'highest',
                                                int(args['suspicious_num']),
                                                available_layers)
 
-            save_dominant_neurons(dominant_neuron_idx, filename, group_index)
+            save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
 
 
     elif args['approach'] == 'opposite':
 
         try:
-            dominant_neuron_idx = load_dominant_neurons(filename, group_index)
+            suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
             _, scores = ochiai_analysis(correct_classifications,
                                         misclassifications, layer_outs,
@@ -235,21 +236,21 @@ if __name__ == "__main__":
 
             filename_ochiai = experiment_path + '/' + model_name + '_' + \
             str(args['class']) + '_ochiai_' + 'SN' + str(args['suspicious_num'])
-            dominant_neuron_idx_ochiai = load_dominant_neurons(filename_ochiai, group_index)
+            suspicious_neuron_idx_ochiai = load_dominant_neurons(filename_ochiai, group_index)
 
             available_layers = []
             filtered_scores = []
-            for dom_ochiai in dominant_neuron_idx_ochiai:
+            for dom_ochiai in suspicious_neuron_idx_ochiai:
                 if dom_ochiai[0] not in available_layers:
                     available_layers.append(dom_ochiai[0])
                     filtered_scores.append(scores[dom_ochiai[0]])
 
-            dominant_neuron_idx = find_indices(filtered_scores, 'lowest',
+            suspicious_neuron_idx = find_indices(filtered_scores, 'lowest',
                                                int(args['suspicious_num']),
                                                available_layers)
-            print dominant_neuron_idx
+            print suspicious_neuron_idx
             
-            save_dominant_neurons(dominant_neuron_idx, filename, group_index)
+            save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
 
             '''
             flat_scores = [item for sublist in scores for item in sublist]
@@ -258,90 +259,51 @@ if __name__ == "__main__":
             for i in range(len(scores)):
                 for j in range(len(scores[i])):
                     if scores[i][j] <= percentile:
-                        dominant_neuron_idx[i].append(j)
+                        suspicious_neuron_idx[i].append(j)
 
-            dominant_neuron_idx = dominant_neuron_idx[:-1]
+            suspicious_neuron_idx = suspicious_neuron_idx[:-1]
             '''
 
     elif args['approach'] == 'random':
         filename = experiment_path + '/' + model_name + '_' + args['class'] + \
         '_tarantula_' + 'SN' + str(args['suspicious_num'])
 
-        dominant_neuron_idx_opposite = load_dominant_neurons(filename, group_index)
+        suspicious_neuron_idx_tarantula = load_dominant_neurons(filename, group_index)
 
         filename = experiment_path + '/' + model_name + '_' + args['class'] + \
         '_ochiai_' + 'SN' + str(args['suspicious_num'])
 
-        dominant_neuron_idx_ochiai = load_dominant_neurons(filename, group_index)
+        suspicious_neuron_idx_ochiai = load_dominant_neurons(filename, group_index)
+
+        filename = experiment_path + '/' + model_name + '_' + args['class'] + \
+        '_dstar_' + 'SN' + str(args['suspicious_num'])
+
+        suspicious_neuron_idx_dstar = load_dominant_neurons(filename, group_index)
 
 
-        forbiddens = dominant_neuron_idx_ochiai + dominant_neuron_idx_opposite
+        forbiddens = suspicious_neuron_idx_ochiai + suspicious_neuron_idx_tarantula  + \
+        suspicious_neuron_idx_dstar
+
         forbiddens = [list(forb) for forb in forbiddens]
         print forbiddens
 
-        available_layers = list(set([elem[0] for elem in dominant_neuron_idx_ochiai]))
-        dominant_neuron_idx = []
-        while len(dominant_neuron_idx) < int(args['suspicious_num']):
+        available_layers = list(set([elem[0] for elem in suspicious_neuron_idx_tarantula]))
+        available_layers += list(set([elem[0] for elem in suspicious_neuron_idx_ochiai]))
+        available_layers += list(set([elem[0] for elem in suspicious_neuron_idx_dstar]))
+        
+        suspicious_neuron_idx = []
+        while len(suspicious_neuron_idx) < int(args['suspicious_num']):
             l_idx = random.choice(available_layers)
-            n_idx = random.choice(range(args['neurons']))
+            n_idx = random.choice(range(model.layers[l_idx].output_shape[1]))
 
-            if [l_idx, n_idx] not in forbiddens and [l_idx, n_idx] not in dominant_neuron_idx:
-                dominant_neuron_idx.append([l_idx, n_idx])
+            if [l_idx, n_idx] not in forbiddens and [l_idx, n_idx] not in suspicious_neuron_idx:
+                suspicious_neuron_idx.append([l_idx, n_idx])
 
-        #filename = filename + '_R' + str(args['repeat'])
 
-        '''
-        dominant_neuron_idx = [[] for _ in range(len(dominant_neuron_idx_ochiai))]
+    print suspicious_neuron_idx
 
-        t_or_o = random.randint(0,1)
-
-        for d in range(len(dominant_neuron_idx_tarantula)):
-            dominant_t = dominant_neuron_idx_tarantula[d]
-            dominant_o = dominant_neuron_idx_ochiai[d]
-
-            if t_or_o == 0:
-                random_dominants = random.sample([e for e in
-                                                  range(int(args['neurons']))
-                                                  if e not in dominant_t and
-                                                  e not in dominant_o], len(dominant_t))
-            else:
-                random_dominants = random.sample([e for e in
-                                                  range(int(args['neurons']))
-                                                  if e not in dominant_t and
-                                                  e not in dominant_o], len(dominant_o))
-
-            dominant_neuron_idx[d] = random_dominants
-
-        ###################
-
-        num_dominants = len([item for sub in dominant_neuron_idx_ochiai for item in sub])
-
-        t_or_o = random.randint(0,1)
-        available_layers = []
-        if t_or_o == 0:
-            available_layers = [i for i in range(len(dominant_neuron_idx_tarantula)) if len(dominant_neuron_idx_tarantula[i]) > 0]
-        else:
-            available_layers = [i for i in range(len(dominant_neuron_idx_ochiai)) if len(dominant_neuron_idx_ochiai[i]) > 0]
-
-        ##remove duplicate layers
-        available_layers= [al for al in available_layers if al % 2 == 0]
-        print available_layers
-
-        added = 0
-        while added < num_dominants/2:
-            rand_layer = random.choice(available_layers)
-            rand_idx   = random.randint(0, int(args['neurons'])-1)
-
-            if rand_idx not in dominant_neuron_idx_ochiai[rand_layer] and rand_idx not in dominant_neuron_idx_tarantula[rand_layer] and rand_idx not in dominant_neuron_idx[rand_layer]:
-                dominant_neuron_idx[rand_layer].append(rand_idx)
-                added += 1
-        print dominant_neuron_idx
-        '''
-
-    print dominant_neuron_idx
-
-    #dominant = {x: dominant_neuron_idx[x - 1] for x in range(1, len(dominant_neuron_idx) + 1)}
-    logfile.write('Dominants: ' + str(dominant_neuron_idx) + '\n')
+    #dominant = {x: suspicious_neuron_idx[x - 1] for x in range(1, len(suspicious_neuron_idx) + 1)}
+    logfile.write('Suspicous neurons: ' + str(suspicious_neuron_idx) + '\n')
 
     ####################
     # 4) Run Mutation Algorithm
@@ -349,27 +311,13 @@ if __name__ == "__main__":
     # the correct classifications (from the testing set) that exercise the
     # suspicious neurons
 
-    #layers = range(1, len(model.layers)-1)
-    tot_start = datetime.datetime.now()
-    #for layer in layers[0::2]:
     perturbed_xs = []
     perturbed_ys = []
-    #dominant_indices = dominant[layer]
-
-#    if len(dominant_indices) == 0:
-#        logfile.write('Model: ' + str(model_name) + ', Activation: ' +
-#                  args['activation'] + ', Class: ' + args['class'] + ', Layer: ' + str(layer) +
-#                  ', Approach: ' + str(args['approach']) + ', Percentile: '
-#                  + str(args['percentile']) + ', Distance: ' +
-#                      str(args['distance']) + ', Score: No Suspicious. \n')
-#        continue
-
-#        for dominant_idx in dominant_indices:
 
     if args['mutate'] is None or args['mutate'] is True:
          start = datetime.datetime.now()
          x_perturbed, y_perturbed = mutate(model, X_val, Y_val,
-                                           dominant_neuron_idx,
+                                           suspicious_neuron_idx,
                                            correct_classifications,
                                            float(args['distance']))
          end = datetime.datetime.now()
@@ -400,10 +348,7 @@ if __name__ == "__main__":
                   ', Approach: ' + str(args['approach']) + ', Distance: ' +
                   str(args['distance']) + ', Score: ' +
                   str(score) + '\n')
-    logfile.write('Time: ' + str(end-start) + '\n\n')
-
-    tot_end = datetime.datetime.now()
-    logfile.write('Total Time: ' + str(tot_end-tot_start) + '\n\n')
+    logfile.write('Mutation Time: ' + str(end-start) + '\n')
 
     ####################
     # 5) Test if the mutated inputs are adversarial
@@ -422,32 +367,3 @@ if __name__ == "__main__":
     test_model(model, X_test, Y_test)
     '''
 
-    '''
-    dominant_neuron_idx = []
-    dominant_neurons_file_exists = False
-    if args['approach'] == 'intersection':
-        dominant_neuron_idx = coarse_intersection_analysis(correct_classifications, misclassifications, layer_outs)
-    elif args['approach'] == 'tarantula':
-        dominant_neuron_idx = tarantula_analysis(correct_classifications,
-                                                 misclassifications,
-                                                 layer_outs,
-                                                 int(args['percentile']))
-    elif args['approach'] == 'ochiai':
-        dominant_neuron_idx = ochiai_analysis(correct_classifications,
-                                              misclassifications, layer_outs,
-                                              int(args['percentile']))
-    elif args['approach'] == 'weighted':
-        dominant_neuron_idx = coarse_weighted_analysis(correct_classifications, misclassifications, layer_outs)
-    elif args['approach'] == 'saliency':
-        dominant_neuron_idx = saliency_map_analysis(correct_classifications, misclassifications, layer_outs, model, y_predictions)
-    elif args['approach'] is not None:
-        filename = path.join(experiment_path, args['approach'])
-        dominant_neuron_idx = load_dominant_neurons(filename, group_index)
-        dominant_neurons_file_exists = True
-    else:
-        print('Please enter a valid approach to localize dominant neurons.')
-        exit(-1)
-
-    filename = model_name + "_" + args['approach']
-    if not dominant_neurons_file_exists:
-    '''

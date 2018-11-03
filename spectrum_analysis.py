@@ -9,7 +9,7 @@ np.random.seed(7)
 
 def coarse_intersection_analysis(correct_classification_idx, misclassification_idx, layer_outs):
 
-    dominant_neuron_idx = []
+    suspicious_neuron_idx = []
 
     for l_out in layer_outs[1:]:
         dominant = range(len(l_out[0][0]))
@@ -20,33 +20,46 @@ def coarse_intersection_analysis(correct_classification_idx, misclassification_i
                 continue
             dominant = list(np.intersect1d(dominant, np.where(l > 0)))
             test_idx += 1
-        dominant_neuron_idx.append(dominant)
+        suspicious_neuron_idx.append(dominant)
 
-    return dominant_neuron_idx[:-1]
+    return suspicious_neuron_idx[:-1]
 
 
-def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_outs, percent):
+def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_outs, model, suspicious_num):
+
+
+    available_layers = []
+    for layer in model.layers:
+        try:
+            weights = layer.get_weights()[0]
+            available_layers.append(model.layers.index(layer))
+        except:
+            pass
+        
+    available_layers = available_layers[1:] #ignore the input layer
 
     scores = []
     num_cf = []
     num_uf = []
     num_cs = []
     num_us = []
-    for l_out in layer_outs[1:]:
-        num_cf.append(np.zeros(len(l_out[0][0])))  # covered (activated) and failed
-        num_uf.append(np.zeros(len(l_out[0][0])))  # uncovered (not activated) and failed
-        num_cs.append(np.zeros(len(l_out[0][0])))  # covered and succeeded
-        num_us.append(np.zeros(len(l_out[0][0])))  # uncovered and succeeded
-        scores.append(np.zeros(len(l_out[0][0])))
 
-    layer_idx = 0
-    for l_out in layer_outs[1:]:
-        all_neuron_idx = range(len(l_out[0][0]))
+
+    for al in available_layers: 
+        num_cf.append(np.zeros(model.layers[al].output_shape[1]))  # covered (activated) and failed
+        num_uf.append(np.zeros(model.layers[al].output_shape[1]))  # uncovered (not activated) and failed
+        num_cs.append(np.zeros(model.layers[al].output_shape[1]))  # covered and succeeded
+        num_us.append(np.zeros(model.layers[al].output_shape[1]))  # uncovered and succeeded
+        scores.append(np.zeros(model.layers[al].output_shape[1]))
+
+
+    for al in available_layers:
+        layer_idx = available_layers.index(al)
+        all_neuron_idx = range(model.layers[al].output_shape[1]) 
         test_idx = 0
-        for l in l_out[0]:
+        for l in layer_outs[al][0]:
             covered_idx   = list(np.where(l > 0)[0])
             uncovered_idx = list(set(all_neuron_idx)-set(covered_idx))
-
             if test_idx  in correct_classification_idx:
                 for cov_idx in covered_idx:
                     num_cs[layer_idx][cov_idx] += 1
@@ -58,9 +71,8 @@ def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_
                 for uncov_idx in uncovered_idx:
                     num_uf[layer_idx][uncov_idx] += 1
             test_idx += 1
-        layer_idx += 1
 
-    dominant_neuron_idx = [[] for i in range(1, len(layer_outs))]
+    suspicious_neuron_idx = [[] for i in range(1, len(available_layers))]
 
     for i in range(len(scores)):
         for j in range(len(scores[i])):
@@ -68,19 +80,59 @@ def tarantula_analysis(correct_classification_idx, misclassification_idx, layer_
             if np.isnan(score):
                 score = 0
             scores[i][j] = score
-            # if score > 0.53:  # TODO: threshold for identifying the dominant neurons. value via experimentation?
-            #     dominant_neuron_idx[i].append(j)
+
 
     flat_scores = [float(item) for sublist in scores for item in sublist if not
-                  math.isnan(item)]
-    percentile = np.percentile(flat_scores, percent)
-    # percentile = max(flat_scores)
+               math.isnan(float(item))]
+
+    relevant_vals = sorted(flat_scores, reverse=True)[:suspicious_num]
+
+    suspicious_neuron_idx = []
     for i in range(len(scores)):
         for j in range(len(scores[i])):
-            if scores[i][j] >= percentile:
-                dominant_neuron_idx[i].append(j)
+            if scores[i][j] in relevant_vals:
+                if available_layers == None:
+                    suspicious_neuron_idx.append((i,j))
+                else:
+                    suspicious_neuron_idx.append((available_layers[i],j))
+            if len(suspicious_neuron_idx) == suspicious_num:
+                break
 
-    return dominant_neuron_idx[:-1], scores
+    return suspicious_neuron_idx
+
+    # flat_scores = [float(item) for sublist in scores for item in sublist if not
+    #               math.isnan(item)]
+    # percentile = np.percentile(flat_scores, percent)
+    # # percentile = max(flat_scores)
+    # for i in range(len(scores)):
+    #     for j in range(len(scores[i])):
+    #         if scores[i][j] >= percentile:
+    #             suspicious_neuron_idx[i].append(j)
+
+    # return suspicious_neuron_idx[:-1], scores
+
+
+    # layer_idx = 0
+    # for l_out in layer_outs[1:]:
+    #     all_neuron_idx = range(len(l_out[0][0]))
+    #     test_idx = 0
+    #     for l in l_out[0]:
+    #         covered_idx   = list(np.where(l > 0)[0])
+    #         uncovered_idx = list(set(all_neuron_idx)-set(covered_idx))
+
+    #         if test_idx  in correct_classification_idx:
+    #             for cov_idx in covered_idx:
+    #                 num_cs[layer_idx][cov_idx] += 1
+    #             for uncov_idx in uncovered_idx:
+    #                 num_us[layer_idx][uncov_idx] += 1
+    #         elif test_idx in misclassification_idx:
+    #             for cov_idx in covered_idx:
+    #                 num_cf[layer_idx][cov_idx] += 1
+    #             for uncov_idx in uncovered_idx:
+    #                 num_uf[layer_idx][uncov_idx] += 1
+    #         test_idx += 1
+    #     layer_idx += 1
+
 
 
 def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_outs, percent):
@@ -119,14 +171,14 @@ def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_out
         layer_idx += 1
 
 
-    dominant_neuron_idx= [[] for i in range(1, len(layer_outs))]
+    suspicious_neuron_idx= [[] for i in range(1, len(layer_outs))]
 
     for i in range(len(scores)):
         for j in range(len(scores[i])):
             score = float(num_cf[i][j]) / ((num_cf[i][j] + num_uf[i][j]) * (num_cf[i][j] + num_cs[i][j])) **(.5)
             scores[i][j] = score
             #if score > 0.29:  # TODO: Threshold? for identifying the dominant neurons. value via experimentation?
-            #    dominant_neuron_idx[i].append(j)
+            #    suspicious_neuron_idx[i].append(j)
 
     flat_scores = [float(item) for sublist in scores for item in sublist if not
                   math.isnan(item)]
@@ -137,9 +189,9 @@ def ochiai_analysis(correct_classification_idx, misclassification_idx, layer_out
     for i in range(len(scores)):
         for j in range(len(scores[i])):
             if scores[i][j] >= percentile:
-                dominant_neuron_idx[i].append(j)
+                suspicious_neuron_idx[i].append(j)
 
-    return dominant_neuron_idx[:-1], scores
+    return suspicious_neuron_idx[:-1], scores
 
 
 def dstar_analysis(correct_classification_idx, misclassification_idx,
@@ -178,7 +230,7 @@ def dstar_analysis(correct_classification_idx, misclassification_idx,
         layer_idx += 1
 
 
-    dominant_neuron_idx= [[] for i in range(1, len(layer_outs))]
+    suspicious_neuron_idx= [[] for i in range(1, len(layer_outs))]
 
     for i in range(len(scores)):
         for j in range(len(scores[i])):
@@ -194,10 +246,10 @@ def dstar_analysis(correct_classification_idx, misclassification_idx,
     for i in range(len(scores)):
         for j in range(len(scores[i])):
             if scores[i][j] >= percentile:
-                dominant_neuron_idx[i].append(j)
+                suspicious_neuron_idx[i].append(j)
     '''
 
-    return dominant_neuron_idx[:-1], scores
+    return suspicious_neuron_idx[:-1], scores
 
 
 def fine_intersection_analysis(model, predictions, true_classes,
@@ -228,15 +280,15 @@ def fine_intersection_analysis(model, predictions, true_classes,
 
     layer_outs = get_layer_outs(model, class_specific_test_set)
 
-    dominant_neuron_idx= [[] for i in range(len(layer_outs))]
+    suspicious_neuron_idx= [[] for i in range(len(layer_outs))]
 
     for l_out in layer_outs[1:]:
         dominant = range(len(l_out[0][0]))
         for l in l_out[0]:
             dominant = np.intersect1d(dominant, np.where(l > 0))
-        dominant_neuron_idx.append(dominant)
+        suspicious_neuron_idx.append(dominant)
 
-    return dominant_neuron_idx
+    return suspicious_neuron_idx
 
 
 
@@ -284,7 +336,7 @@ def tarantula_analysis_for_class(correct_classification_idx, misclassification_i
             test_idx += 1
         layer_idx += 1
 
-    dominant_neuron_idx = [[] for i in range(1, len(layer_outs))]
+    suspicious_neuron_idx = [[] for i in range(1, len(layer_outs))]
 
     for i in range(len(scores)):
         for j in range(len(scores[i])):
@@ -293,7 +345,7 @@ def tarantula_analysis_for_class(correct_classification_idx, misclassification_i
                 score = 0
             scores[i][j] = score
             # if score > 0.53:  # TODO: threshold for identifying the dominant neurons. value via experimentation?
-            #     dominant_neuron_idx[i].append(j)
+            #     suspicious_neuron_idx[i].append(j)
 
     flat_scores = [item for sublist in scores[:-1] for item in sublist]
     percentile = np.percentile(flat_scores, 95)
@@ -301,7 +353,7 @@ def tarantula_analysis_for_class(correct_classification_idx, misclassification_i
     for i in range(len(scores)):
         for j in range(len(scores[i])):
             if scores[i][j] >= percentile:
-                dominant_neuron_idx[i].append(j)
+                suspicious_neuron_idx[i].append(j)
 
-    print(dominant_neuron_idx[:-1])
-    return dominant_neuron_idx[:-1]
+    print(suspicious_neuron_idx[:-1])
+    return suspicious_neuron_idx[:-1]

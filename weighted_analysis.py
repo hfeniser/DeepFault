@@ -8,10 +8,10 @@ def coarse_weighted_analysis(correct_classification_idx, misclassification_idx, 
 #(predictions, true_classes,model, prdctn_tobe_anlyzd=None, true_tobe_anlyzd=None):
 
     scores = []
-    dominant_neuron_idx = []
+    suspicious_neuron_idx = []
     for l_out in layer_outs:
         scores.append(np.zeros(len(l_out[0][0])))
-        dominant_neuron_idx.append([])
+        suspicious_neuron_idx.append([])
 
     for layer_idx in range(1, len(layer_outs[1:])):
         test_idx = 0
@@ -26,9 +26,9 @@ def coarse_weighted_analysis(correct_classification_idx, misclassification_idx, 
     for i in range(len(scores)):
         for j in range(len(scores[i])):
             if scores[i][j] > 200:  # TODO: Threshold? what's the correct value? maybe can be found through experiments?
-                dominant_neuron_idx[i].append(j)
+                suspicious_neuron_idx[i].append(j)
 
-    return dominant_neuron_idx[1:-1]
+    return suspicious_neuron_idx[1:-1]
 
 
 
@@ -57,10 +57,10 @@ def fine_weighted_analysis(model, predictions, true_classes, prediction_tobe_ana
     layer_outs = get_layer_outs(model, class_specific_test_set)
 
     scores = []
-    dominant_neuron_idx = []
+    suspicious_neuron_idx = []
     for l_out in layer_outs:
         scores.append(np.zeros(len(l_out[0][0])))
-        dominant_neuron_idx.append([])
+        suspicious_neuron_idx.append([])
 
     for layer_idx in range(1, len(layer_outs[1:])):
         for l in layer_outs[layer_idx][0]:
@@ -70,8 +70,8 @@ def fine_weighted_analysis(model, predictions, true_classes, prediction_tobe_ana
     for i in len(scores):
         for j in len(scores[i]):
             if scores[i][j] > 5: # TODO: threshold?
-                dominant_neuron_idx[i].append(j)
+                suspicious_neuron_idx[i].append(j)
 
-    print(dominant_neuron_idx)
+    print(suspicious_neuron_idx)
 
-    return dominant_neuron_idx
+    return suspicious_neuron_idx
