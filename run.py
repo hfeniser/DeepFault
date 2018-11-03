@@ -184,7 +184,7 @@ if __name__ == "__main__":
             #                                    int(args['suspicious_num']),
             #                                    available_layers)
 
-            save_dominant_neurons(suspicious_neurons_idx, filename, group_index)
+            save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
 
     elif args['approach'] == 'ochiai':
         try:
