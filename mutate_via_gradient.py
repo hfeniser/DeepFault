@@ -18,8 +18,8 @@ def mutate(model, X_val, Y_val, suspicious_indices, correct_classifications, d):
         grads_for_doms = []
         flatX = [item for sublist in x[0] for item in sublist]
         for dom in suspicious_indices:
-            loss = model.layers[dom[0]].output[..., dom[1]]
-            grads = K.gradients(loss, input_tensor)[0]
+            loss = K.mean(model.layers[dom[0]].output[..., dom[1]])
+            grads = K.normalize(K.gradients(loss, input_tensor)[0])
             iterate = K.function([input_tensor], [loss, grads])
             loss_val, grad_vals = iterate([np.expand_dims(flatX, axis=0)])
             grads_for_doms.append(grad_vals)
