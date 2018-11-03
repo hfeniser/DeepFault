@@ -169,9 +169,9 @@ if __name__ == "__main__":
 
     if args['approach'] == 'tarantula':
         try:
-            suspicious_neurons_idx = load_dominant_neurons(filename, group_index)
+            suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
-            suspicious_neurons_idx = tarantula_analysis(correct_classifications,
+            suspicious_neuron_idx = tarantula_analysis(correct_classifications,
                                                  misclassifications,
                                                  layer_outs,model,
                                                  int(args['suspicious_num']))
