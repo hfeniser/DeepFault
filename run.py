@@ -164,9 +164,6 @@ if __name__ == "__main__":
 
     ####################
     # 3) Receive the correct classifications  & misclassifications and identify the suspicious neurons per layer
-    filename = experiment_path + '/' + model_name + '_' + args['class'] + '_' +\
-    args['approach'] +  '_SN' +  str(args['suspicious_num'])
-
     ############################################
     #Preparations for finding suspicious neurons
     ############################################
@@ -200,12 +197,12 @@ if __name__ == "__main__":
         for l in layer_outs[al][0]:
             covered_idx   = list(np.where(l > 0)[0])
             uncovered_idx = list(set(all_neuron_idx)-set(covered_idx))
-            if test_idx  in correct_classification_idx:
+            if test_idx  in correct_classifications:
                 for cov_idx in covered_idx:
                     num_cs[layer_idx][cov_idx] += 1
                 for uncov_idx in uncovered_idx:
                     num_us[layer_idx][uncov_idx] += 1
-            elif test_idx in misclassification_idx:
+            elif test_idx in misclassifications:
                 for cov_idx in covered_idx:
                     num_cf[layer_idx][cov_idx] += 1
                 for uncov_idx in uncovered_idx:
@@ -214,7 +211,9 @@ if __name__ == "__main__":
     ############################################
     ############################################
 
-
+    filename = experiment_path + '/' + model_name + '_' + args['class'] + '_' +\
+    args['approach'] +  '_SN' +  str(args['suspicious_num'])
+    
     if args['approach'] == 'tarantula':
         try:
             suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
