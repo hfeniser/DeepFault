@@ -11,7 +11,7 @@ def mutate(model, X_val, Y_val, dominant_indices, correct_classifications, d):
     perturbed_set_y = []
 
     #selct 10 inputs randomly from the correct classification set.
-    zipped_random_data = random(zip(list(np.array(X_val)[correct_classifications]),
+    zipped_random_data = random.sample(zip(list(np.array(X_val)[correct_classifications]),
                             list(np.array(Y_val)[correct_classifications])), 10)
 
     for x, y in zipped_random_data:
