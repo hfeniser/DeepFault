@@ -9,6 +9,7 @@ def mutate(model, X_val, Y_val, suspicious_indices, correct_classifications, ste
 
     perturbed_set_x = []
     perturbed_set_y = []
+    original_set_x  = []
 
     #selct 10 inputs randomly from the correct classification set.
     zipped_random_data = random.sample(zip(list(np.array(X_val)[correct_classifications]),
@@ -51,6 +52,7 @@ def mutate(model, X_val, Y_val, suspicious_indices, correct_classifications, ste
 
         perturbed_set_x.append(perturbed_x)
         perturbed_set_y.append(y)
+        original_set_x.append(x)
 
     '''
     for xv, xp in zip(list(np.array(X_val)[correct_classifications])[:10], perturbed_set_x):
@@ -71,4 +73,4 @@ def mutate(model, X_val, Y_val, suspicious_indices, correct_classifications, ste
         print('========')
     '''
 
-    return perturbed_set_x, perturbed_set_y
+    return perturbed_set_x, perturbed_set_y, original_set_x

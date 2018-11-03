@@ -309,6 +309,18 @@ def load_dominant_neurons(filename, group_index):
         return dominant_neurons
 
 
+def save_original_inputs(original_inputs, filename, group_index):
+    filename = filename + '_originals.h5'
+    with h5py.File(filename, 'a') as hf:
+        group = hf.create_group('group'+str(group_index))
+        group.create_dataset("x_original", data=original_inputs)
+
+    print("Originals saved in ", filename)
+
+    return
+
+
+
 def find_class_of(X, Y, desired_class):
     X_class = []
     Y_class = []
@@ -369,30 +381,3 @@ def weight_analysis(model):
 def normalize(x):
     # utility function to normalize a tensor by its L2 norm
     return x / (K.sqrt(K.mean(K.square(x))) + 1e-5)
-
-def find_indices(scores, which_end, size, available_layers=None):
-
-
-    flat_scores = [float(item) for sublist in scores for item in sublist if not
-                   math.isnan(float(item))]
-
-    print sorted(flat_scores)
-    if which_end == 'lowest':
-        relevant_vals = sorted(flat_scores)[:size]
-    else:
-        relevant_vals = sorted(flat_scores, reverse=True)[:size]
-
-    print relevant_vals
-
-    relevant_indices = []
-    for i in range(len(scores)):
-        for j in range(len(scores[i])):
-            if scores[i][j] in relevant_vals:
-                if available_layers == None:
-                    relevant_indices.append((i,j))
-                else:
-                    relevant_indices.append((available_layers[i],j))
-            if len(relevant_indices) == size:
-                break
-    return relevant_indices
-

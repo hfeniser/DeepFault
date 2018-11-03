@@ -12,7 +12,7 @@ from weighted_analysis import *
 from utils import create_experiment_dir, save_perturbed_test_groups, load_perturbed_test_groups
 from utils import load_dominant_neurons, save_dominant_neurons
 from utils import load_classifications, save_classifications, save_layer_outs, load_layer_outs
-from utils import find_class_of, load_data, find_indices
+from utils import find_class_of, load_data, find_indices, save_original_inputs
 from mutate_via_gradient import mutate
 from sklearn.model_selection import train_test_split
 from saliency_map_analysis import saliency_map_analysis
@@ -325,7 +325,7 @@ if __name__ == "__main__":
 
     if args['mutate'] is None or args['mutate'] is True:
          start = datetime.datetime.now()
-         x_perturbed, y_perturbed = mutate(model, X_val, Y_val,
+         x_perturbed, y_perturbed, x_original = mutate(model, X_val, Y_val,
                                            suspicious_neuron_idx,
                                            correct_classifications,
                                            float(args['step_size']),
@@ -351,6 +351,7 @@ if __name__ == "__main__":
     #filename = filename + '_layer' + str(layer)
     if args['mutate'] is None or args['mutate'] is True:
         save_perturbed_test_groups(perturbed_xs, perturbed_ys, filename, group_index)
+        save_original_inputs(x_original, filename, group_index)
 
     score = model.evaluate(perturbed_xs, perturbed_ys, verbose=0)
     logfile.write('Model: ' + str(model_name) + ', Activation: ' +
