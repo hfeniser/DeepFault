@@ -163,26 +163,66 @@ if __name__ == "__main__":
         save_layer_outs(layer_outs, filename, group_index)
 
     ####################
-    # 3) Receive the correct classifications  & misclassifications and identify the dominant neurons per layer
+    # 3) Receive the correct classifications  & misclassifications and identify the suspicious neurons per layer
     filename = experiment_path + '/' + model_name + '_' + args['class'] + '_' +\
     args['approach'] +  '_SN' +  str(args['suspicious_num'])
+
+    ############################################
+    #Preparations for finding suspicious neurons
+    ############################################
+    available_layers = []
+    for layer in model.layers:
+        try:
+            weights = layer.get_weights()[0]
+            available_layers.append(model.layers.index(layer))
+        except:
+            pass
+        
+    available_layers = available_layers[1:] #ignore the input layer
+
+    scores = []
+    num_cf = []
+    num_uf = []
+    num_cs = []
+    num_us = []
+    for al in available_layers: 
+        num_cf.append(np.zeros(model.layers[al].output_shape[1]))  # covered (activated) and failed
+        num_uf.append(np.zeros(model.layers[al].output_shape[1]))  # uncovered (not activated) and failed
+        num_cs.append(np.zeros(model.layers[al].output_shape[1]))  # covered and succeeded
+        num_us.append(np.zeros(model.layers[al].output_shape[1]))  # uncovered and succeeded
+        scores.append(np.zeros(model.layers[al].output_shape[1]))
+
+
+    for al in available_layers:
+        layer_idx = available_layers.index(al)
+        all_neuron_idx = range(model.layers[al].output_shape[1]) 
+        test_idx = 0
+        for l in layer_outs[al][0]:
+            covered_idx   = list(np.where(l > 0)[0])
+            uncovered_idx = list(set(all_neuron_idx)-set(covered_idx))
+            if test_idx  in correct_classification_idx:
+                for cov_idx in covered_idx:
+                    num_cs[layer_idx][cov_idx] += 1
+                for uncov_idx in uncovered_idx:
+                    num_us[layer_idx][uncov_idx] += 1
+            elif test_idx in misclassification_idx:
+                for cov_idx in covered_idx:
+                    num_cf[layer_idx][cov_idx] += 1
+                for uncov_idx in uncovered_idx:
+                    num_uf[layer_idx][uncov_idx] += 1
+            test_idx += 1
+    ############################################
+    ############################################
+
 
     if args['approach'] == 'tarantula':
         try:
             suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
-            suspicious_neuron_idx = tarantula_analysis(correct_classifications,
-                                                 misclassifications,
-                                                 layer_outs,model,
+            suspicious_neuron_idx = tarantula_analysis(available_layers, scores, 
+                                                 num_cf, num_uf, num_cs, num_us, 
                                                  int(args['suspicious_num']))
 
-            # filtered_scores = []
-            # for al in available_layers:
-            #     filtered_scores.append(scores[al])
-
-            # suspicious_neuron_idx = find_indices(filtered_scores, 'highest',
-            #                                    int(args['suspicious_num']),
-            #                                    available_layers)
 
             save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
 
@@ -190,37 +230,21 @@ if __name__ == "__main__":
         try:
             suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
-            _, scores = ochiai_analysis(correct_classifications,
-                                                 misclassifications,
-                                                 layer_outs, 90)#temporary 90 
+            suspicious_neuron_idx = ochiai_analysis(available_layers,
+                                                 available_layers, scores, 
+                                                 num_cf, num_uf, num_cs, num_us, 
+                                                 int(args['suspicious_num']))
 
-            available_layers = range(1,len(model.layers)-1,2)
-            filtered_scores = []
-            for al in available_layers:
-                filtered_scores.append(scores[al])
-
-            suspicious_neuron_idx = find_indices(filtered_scores, 'highest',
-                                               int(args['suspicious_num']),
-                                               available_layers)
             save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
 
     elif args['approach'] == 'dstar':
         try:
             suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
-            _, scores = dstar_analysis(correct_classifications,
-                                                 misclassifications,
-                                                 layer_outs,
-                                                 args['percentile'], 3)
-
-            available_layers = range(1,len(model.layers)-1,2)
-            filtered_scores = []
-            for al in available_layers:
-                filtered_scores.append(scores[al])
-
-            suspicious_neuron_idx = find_indices(filtered_scores, 'highest',
-                                               int(args['suspicious_num']),
-                                               available_layers)
+            suspicious_neuron_idx = dstar_analysis(available_layers,
+                                                 available_layers, scores, 
+                                                 num_cf, num_uf, num_cs, num_us, 
+                                                 int(args['suspicious_num']), 3)
 
             save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
 
@@ -251,18 +275,6 @@ if __name__ == "__main__":
             print suspicious_neuron_idx
             
             save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
-
-            '''
-            flat_scores = [item for sublist in scores for item in sublist]
-            percentile = np.nanpercentile(flat_scores, 100 - int(args['percentile']))
-            # percentile = max(flat_scores)
-            for i in range(len(scores)):
-                for j in range(len(scores[i])):
-                    if scores[i][j] <= percentile:
-                        suspicious_neuron_idx[i].append(j)
-
-            suspicious_neuron_idx = suspicious_neuron_idx[:-1]
-            '''
 
     elif args['approach'] == 'random':
         filename = experiment_path + '/' + model_name + '_' + args['class'] + \
