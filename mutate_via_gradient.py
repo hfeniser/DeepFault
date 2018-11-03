@@ -3,7 +3,7 @@ import numpy as np
 from utils import load_model, load_data, get_layer_outs, normalize
 import random
 
-def mutate(model, X_val, Y_val, suspicious_indices, correct_classifications, d):
+def mutate(model, X_val, Y_val, suspicious_indices, correct_classifications, step_size, d):
 
     input_tensor = model.layers[0].output
 
@@ -39,6 +39,7 @@ def mutate(model, X_val, Y_val, suspicious_indices, correct_classifications, d):
                 #     allAgree = False
 
             avg_grad = float(sum_grad) / len(suspicious_indices)
+            avg_grad = avg_grad * step_size
             print avg_grad
 
             if avg_grad > d:

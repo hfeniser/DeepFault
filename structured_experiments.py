@@ -4,6 +4,7 @@ import datetime
 # percents    = [90, 95, 99]
 # activations = ['leaky_relu']
 
+global_distance = 0.1
 labels      = [0,1,2,3,4,5,6,7,8,9]
 model_names = ['mnist_test_model_5_30', 'mnist_test_model_8_20',
                'mnist_test_model_6_25']
@@ -26,8 +27,8 @@ for step in step_size:
                         str(arch[model_names.index(model_name)][1]) + ' -HL ' +\
                         str(arch[model_names.index(model_name)][0]) + ' -C ' +\
                         str(label) + ' -AC leaky_relu -SS ' +\
-                        str(step) + ' -M ' + \
-                        model_name + ' -R ' + str(rep) + ' -SN ' +str(sn) + \
+                        str(step) + ' -M ' + model_name + ' -R ' + \
+                        str(rep) + ' -SN ' +str(sn) + ' -D ' + str(global_distance)\
                         ' -LOG experiment/logfile.log'
 
                         start = datetime.datetime.now()

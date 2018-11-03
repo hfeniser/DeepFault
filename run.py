@@ -319,6 +319,7 @@ if __name__ == "__main__":
          x_perturbed, y_perturbed = mutate(model, X_val, Y_val,
                                            suspicious_neuron_idx,
                                            correct_classifications,
+                                           float(args['step_size']),
                                            float(args['distance']))
          end = datetime.datetime.now()
     else:
