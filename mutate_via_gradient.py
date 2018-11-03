@@ -40,7 +40,7 @@ def mutate(model, X_val, Y_val, suspicious_indices, correct_classifications, ste
 
             avg_grad = float(sum_grad) / len(suspicious_indices)
             avg_grad = avg_grad * step_size
-            print avg_grad
+            # print avg_grad
 
             if avg_grad > d:
                 avg_grad = d

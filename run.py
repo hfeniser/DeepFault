@@ -213,7 +213,7 @@ if __name__ == "__main__":
 
     filename = experiment_path + '/' + model_name + '_' + args['class'] + '_' +\
     args['approach'] +  '_SN' +  str(args['suspicious_num'])
-    
+
     if args['approach'] == 'tarantula':
         try:
             suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
@@ -229,8 +229,7 @@ if __name__ == "__main__":
         try:
             suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
-            suspicious_neuron_idx = ochiai_analysis(available_layers,
-                                                 available_layers, scores, 
+            suspicious_neuron_idx = ochiai_analysis(available_layers, scores, 
                                                  num_cf, num_uf, num_cs, num_us, 
                                                  int(args['suspicious_num']))
 
@@ -240,8 +239,7 @@ if __name__ == "__main__":
         try:
             suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
-            suspicious_neuron_idx = dstar_analysis(available_layers,
-                                                 available_layers, scores, 
+            suspicious_neuron_idx = dstar_analysis(available_layers, scores, 
                                                  num_cf, num_uf, num_cs, num_us, 
                                                  int(args['suspicious_num']), 3)
 
