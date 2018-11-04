@@ -3,7 +3,7 @@ import numpy as np
 from utils import load_model, load_data, get_layer_outs, normalize
 import random
 
-def mutate(model, X_val, Y_val, suspicious_indices, correct_classifications, step_size, d):
+def mutate(model, zipped_data, suspicious_indices, correct_classifications, step_size, d):
 
     input_tensor = model.layers[0].output
 
@@ -11,11 +11,7 @@ def mutate(model, X_val, Y_val, suspicious_indices, correct_classifications, ste
     perturbed_set_y = []
     original_set_x  = []
 
-    #selct 10 inputs randomly from the correct classification set.
-    zipped_random_data = random.sample(zip(list(np.array(X_val)[correct_classifications]),
-                            list(np.array(Y_val)[correct_classifications])), 10)
-
-    for x, y in zipped_random_data:
+    for x, y in zipped_data:
         grads_for_doms = []
         flatX = [item for sublist in x[0] for item in sublist]
         for dom in suspicious_indices:

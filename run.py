@@ -323,9 +323,14 @@ if __name__ == "__main__":
     perturbed_xs = []
     perturbed_ys = []
 
+
+    #selct 10 inputs randomly from the correct classification set.
+    zipped_data = random.sample(zip(list(np.array(X_val)[correct_classifications]),
+                            list(np.array(Y_val)[correct_classifications])), 10)
+
     if args['mutate'] is None or args['mutate'] is True:
          start = datetime.datetime.now()
-         x_perturbed, y_perturbed, x_original = mutate(model, X_val, Y_val,
+         x_perturbed, y_perturbed, x_original = mutate(model, zipped_data,
                                            suspicious_neuron_idx,
                                            correct_classifications,
                                            float(args['step_size']),
