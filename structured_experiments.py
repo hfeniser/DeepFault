@@ -9,10 +9,10 @@ labels      = [0,1,2,3,4,5,6,7,8,9]
 model_names = ['mnist_test_model_5_30', 'mnist_test_model_8_20',
                'mnist_test_model_6_25']
 arch        = [(5,30), (8,20), (6,25)]
-techniques  = ['ochiai', 'tarantula', 'dstar', 'random']
+techniques  = ['tarantula', 'ochiai', 'dstar', 'random']
 repeat      = [1,2,3,4,5]
 suspics_num = [1,2,3,5,10]
-step_size   = [0.01, 0.1, 1, 10, 100]
+step_size   = [0.01, 0.1, 1, 10]
 
 for step in step_size:
     for label in labels:
@@ -28,7 +28,7 @@ for step in step_size:
                         str(arch[model_names.index(model_name)][0]) + ' -C ' +\
                         str(label) + ' -AC leaky_relu -SS ' +\
                         str(step) + ' -M ' + model_name + ' -R ' + \
-                        str(rep) + ' -SN ' +str(sn) + ' -D ' + str(global_distance)\
+                        str(rep) + ' -SN ' +str(sn) + ' -D ' + str(global_distance) +\
                         ' -LOG experiment/logfile.log'
 
                         start = datetime.datetime.now()
@@ -37,4 +37,3 @@ for step in step_size:
                         logfile = open('experiment/logfile.log','a')
                         logfile.write('Total time (including preperations): ' + str(end-start))
                         logfile.close()
-                        exit()

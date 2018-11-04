@@ -1,4 +1,4 @@
-from utils import calculate_prediction_metrics, get_layer_outs
+from utils import calculate_prediction_metrics, get_layer_outs, load_data
 import numpy as np
 
 
@@ -48,4 +48,5 @@ def test_model(model, X_test, Y_test):
 
 
 if __name__ == "__main__":
-    test_model("neural_networks/mnist_test_model_5_5")
+    X_train, Y_train, X_test, Y_test = load_data()
+    test_model("neural_networks/mnist_test_model_5_30", X_test, Y_test)

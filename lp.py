@@ -1,5 +1,5 @@
 from utils import get_layer_outs, show_image
-import cplex
+#import cplex
 import numpy as np
 from random import shuffle
 
