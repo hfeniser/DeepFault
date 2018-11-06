@@ -2,3 +2,4 @@
 *.pyc
 experiment/*
 experiments_paper/mnist*
+cplexExamples
