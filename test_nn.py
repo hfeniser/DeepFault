@@ -48,6 +48,6 @@ def test_model(model, X_test, Y_test):
 
 
 if __name__ == "__main__":
-    model = load_model("neural_networks/mnist_test_model_5_30")
+    model = load_model("neural_networks/mnist_test_model_8_20_leaky_relu")
     X_train, Y_train, X_test, Y_test = load_data()
     test_model(model, X_test, Y_test)

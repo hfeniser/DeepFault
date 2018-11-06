@@ -8,11 +8,10 @@ from test_nn import test_model
 from lp import run_lp
 from os import path
 from spectrum_analysis import *
-from weighted_analysis import *
 from utils import create_experiment_dir, save_perturbed_test_groups, load_perturbed_test_groups
 from utils import load_dominant_neurons, save_dominant_neurons
 from utils import load_classifications, save_classifications, save_layer_outs, load_layer_outs
-from utils import find_class_of, load_data, save_original_inputs
+from utils import find_class_of, load_data, load_model, save_original_inputs
 from mutate_via_gradient import mutate
 from sklearn.model_selection import train_test_split
 from saliency_map_analysis import saliency_map_analysis
