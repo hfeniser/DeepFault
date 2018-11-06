@@ -174,7 +174,7 @@ if __name__ == "__main__":
         except:
             pass
         
-    available_layers = available_layers[1:] #ignore the input layer
+    available_layers = available_layers[:-1] #ignore the output layer
 
     scores = []
     num_cf = []

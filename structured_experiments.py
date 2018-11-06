@@ -33,6 +33,7 @@ for step in step_size:
 
                         start = datetime.datetime.now()
                         os.system(command)
+                        exit()
                         end = datetime.datetime.now()
                         logfile = open('experiment/logfile.log','a')
                         logfile.write('Total time (including preperations): ' + str(end-start))
