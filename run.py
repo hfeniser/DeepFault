@@ -324,8 +324,10 @@ if __name__ == "__main__":
 
 
     #selct 10 inputs randomly from the correct classification set.
-    zipped_data = random.sample(zip(list(np.array(X_val)[correct_classifications]),
-                            list(np.array(Y_val)[correct_classifications])), 10)
+    # zipped_data = random.sample(zip(list(np.array(X_val)[correct_classifications]),
+    #                         list(np.array(Y_val)[correct_classifications])), 10)
+    selected = random.sample(list(correct_classifications), 10)
+    zipped_data = zip(list(np.array(X_val)[selected]), list(np.array(Y_val)[selected]))
 
     if args['mutate'] is None or args['mutate'] is True:
          start = datetime.datetime.now()

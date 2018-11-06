@@ -4,6 +4,10 @@ import datetime
 # percents    = [90, 95, 99]
 # activations = ['leaky_relu']
 
+from utils import get_python_version
+
+python_version = get_python_version()
+
 global_distance = 0.1
 labels      = [0,1,2,3,4,5,6,7,8,9]
 model_names = ['mnist_test_model_5_30', 'mnist_test_model_8_20',
@@ -23,7 +27,13 @@ for step in step_size:
                         if (not tech == 'random') and rep > 1:
                             continue
 
-                        command = 'python run.py -A ' + tech + ' -N ' + \
+                        if python_version == 2:
+                            python_command = 'python run.py '
+                        elif python_version == 3:
+                            python_command = 'python3 run.py '
+
+                        # command = 'python run.py -A ' + tech + ' -N ' + \
+                        command = python_command + '-A ' + tech + ' -N ' + \
                         str(arch[model_names.index(model_name)][1]) + ' -HL ' +\
                         str(arch[model_names.index(model_name)][0]) + ' -C ' +\
                         str(label) + ' -AC leaky_relu -SS ' +\
