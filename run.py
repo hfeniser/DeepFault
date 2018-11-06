@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=1/6.0, random_state=seed)
 
-    print args
+    print(args)
     logfile = open(args['logfile'], 'a')
     logfile.write('\n')
     logfile.write('='*75)
@@ -208,9 +208,9 @@ if __name__ == "__main__":
 
     tot_start = datetime.datetime.now()
     for layer in layers[0::2]:
-        print 'LAYER: ' + str(layer)
+        print('LAYER: ' + str(layer))
         dominant_indices = dominant[layer]
-        print dominant_indices
+        print(dominant_indices)
         if len(dominant_indices) == 0:
             logfile.write('Model: ' + str(model_name) + ', Activation: ' +
                       args['activation'] + ', Class: ' + args['class'] + ', Layer ' + str(layer) +
