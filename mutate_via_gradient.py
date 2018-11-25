@@ -1,10 +1,9 @@
+from utils import load_model, load_data, get_layer_outs, normalize
 from keras import backend as K
 import numpy as np
-from utils import load_model, load_data, get_layer_outs, normalize
 import random
 
-def mutate(model, zipped_data, suspicious_indices, correct_classifications, step_size, d):
-
+def synthesize(model, zipped_data, suspicious_indices, correct_classifications, step_size, d):
     input_tensor = model.layers[0].output
 
     perturbed_set_x = []
@@ -29,15 +28,9 @@ def mutate(model, zipped_data, suspicious_indices, correct_classifications, step
             sum_grad = 0
             for j in range(len(grads_for_doms)):
                 sum_grad += grads_for_doms[j][0][i]
-                # OLD APPROACHES COMMENTED OUT HERE
-                # if min_abs_grad < abs(grads_for_doms[j][0][i]):
-                #     min_abs_grad = abs(grads_for_doms[j][0][i])
-                # if not j == 0 and not np.sign(grads_for_doms[j-1][0][i]) == np.sign(grads_for_doms[j][0][i]):
-                #     allAgree = False
 
             avg_grad = float(sum_grad) / len(suspicious_indices)
             avg_grad = avg_grad * step_size
-            # print avg_grad
 
             if avg_grad > d:
                 avg_grad = d
@@ -49,24 +42,5 @@ def mutate(model, zipped_data, suspicious_indices, correct_classifications, step
         perturbed_set_x.append(perturbed_x)
         perturbed_set_y.append(y)
         original_set_x.append(x)
-
-    '''
-    for xv, xp in zip(list(np.array(X_val)[correct_classifications])[:10], perturbed_set_x):
-
-        xv = np.asarray(xv).reshape(1, 1, 28, 28)
-        layer_outs = get_layer_outs(model, xv)
-
-        print('BEFORE:')
-        for dom in suspicious_indices:
-            print(layer_outs[dom[0]][0][0][dom[1]])
-
-        xp = np.asarray(xp).reshape(1, 1, 28, 28)
-        layer_outs = get_layer_outs(model, xp)
-        print('AFTER:')
-        for dom in suspicious_indices:
-            print(layer_outs[dom[0]][0][0][dom[1]])
-
-        print('========')
-    '''
 
     return perturbed_set_x, perturbed_set_y, original_set_x

@@ -1,6 +1,5 @@
 """
-This is the main file that executes the flow
-of our fault localisation technique
+This is the main file that executes the flow of DeepFault
 """
 import argparse
 from train_nn import train_model, train_model_fault_localisation
@@ -12,7 +11,7 @@ from utils import create_experiment_dir, save_perturbed_test_groups, load_pertur
 from utils import load_dominant_neurons, save_dominant_neurons
 from utils import load_classifications, save_classifications, save_layer_outs, load_layer_outs
 from utils import find_class_of, load_data, load_model, save_original_inputs
-from mutate_via_gradient import mutate
+from mutate_via_gradient import synthesize
 from sklearn.model_selection import train_test_split
 from saliency_map_analysis import saliency_map_analysis
 import random
@@ -282,7 +281,7 @@ if __name__ == "__main__":
     logfile.write('Suspicous neurons: ' + str(suspicious_neuron_idx) + '\n')
 
     ####################
-    # 4) Run Input Synthesis Algorithm
+    # 4) Run Suspiciousness-Guided Input Synthesis Algorithm
     # Receive the set of suspicious neurons for each layer from Step 3 # and 
     # will produce new inputs based on the correct classifications (from the 
     # testing set) that exercise the suspicious neurons
@@ -296,7 +295,7 @@ if __name__ == "__main__":
 
     if args['mutate'] is None or args['mutate'] is True:
          start = datetime.datetime.now()
-         x_perturbed, y_perturbed, x_original = mutate(model, zipped_data,
+         x_perturbed, y_perturbed, x_original = synthesize(model, zipped_data,
                                            suspicious_neuron_idx,
                                            correct_classifications,
                                            float(args['step_size']),
@@ -339,12 +338,12 @@ if __name__ == "__main__":
     '''
     Currently not available
     ####################
-    # 5) retrain the model
+    # 6) retrain the model
     # train_model_fault_localisation(model, x_perturbed, y_perturbed, len(x_perturbed))
     model.fit(x_perturbed, y_perturbed, batch_size=32, epochs=10, verbose=1)
 
     ####################
-    # 6) retest the model
+    # 7) retest the model
     test_model(model, X_test, Y_test)
     '''
 

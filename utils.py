@@ -324,13 +324,13 @@ def save_original_inputs(original_inputs, filename, group_index):
 def find_class_of(X, Y, desired_class):
     X_class = []
     Y_class = []
-    print(Y[0])
-    print(Y[1])
     for x,y in zip(X,Y):
         if y[desired_class] == 1:
             X_class.append(x)
             Y_class.append(y)
- 
+
+    print("Validation set filtered for desired class: " + str(desired_class))
+
     return np.array(X_class), np.array(Y_class)
 
 def cone_of_influence_analysis(model, dominants):
@@ -341,9 +341,6 @@ def cone_of_influence_analysis(model, dominants):
     scores = []
     for i in range(1, target_layer+1):
         scores.append(np.zeros(model.layers[i].output_shape[1]))
-
-    #for i in range(0, len(model.layers)):
-    #    print(model.layers[i].get_weights())
 
     for i in range(2, target_layer + 1)[::-1]:
         for j in range(model.layers[i].output_shape[1]):

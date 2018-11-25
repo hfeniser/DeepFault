@@ -4,6 +4,14 @@ import numpy as np
 from utils import get_layer_outs
 import math
 
+'''
+
+[1] Empirical Evaulation of the Tarantaul automatic fault localization technique
+[2] Zoogeographic studies on the soleoids fishes found in Japan and its
+neighbourings regions.
+[3] The Dstar Method for Effective Fault Localization
+
+'''
 #Provide a seed for reproducability
 np.random.seed(7)
 
@@ -26,7 +34,10 @@ def coarse_intersection_analysis(correct_classification_idx, misclassification_i
 
 
 def tarantula_analysis(available_layers, scores, num_cf, num_uf, num_cs, num_us, suspicious_num):
-
+    '''
+    More information on Tarantula fault localization technique can be found in
+    [1]
+    '''
     suspicious_neuron_idx = [[] for i in range(1, len(available_layers))]
 
     for i in range(len(scores)):
@@ -58,6 +69,10 @@ def tarantula_analysis(available_layers, scores, num_cf, num_uf, num_cs, num_us,
 
 
 def ochiai_analysis(available_layers, scores, num_cf, num_uf, num_cs, num_us, suspicious_num):
+    '''
+    More information on Ochiai fault localization technique can be found in
+    [2]
+    '''
 
     suspicious_neuron_idx = [[] for i in range(1, len(available_layers))]
 
@@ -86,6 +101,10 @@ def ochiai_analysis(available_layers, scores, num_cf, num_uf, num_cs, num_us, su
 
 
 def dstar_analysis(available_layers, scores, num_cf, num_uf, num_cs, num_us, suspicious_num, star):
+    '''
+    More information on DStar fault localization technique can be found in
+    [3]
+    '''
 
     for i in range(len(scores)):
         for j in range(len(scores[i])):
