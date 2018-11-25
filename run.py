@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
     X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=1/6.0, random_state=seed)
 
-    print args
+    print(args)
     logfile = open(args['logfile'], 'a')
     logfile.write('\n')
     logfile.write('='*75)
@@ -245,32 +245,32 @@ if __name__ == "__main__":
             save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
 
 
-    elif args['approach'] == 'opposite':
-
-        try:
-            suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
-        except:
-            _, scores = ochiai_analysis(correct_classifications,
-                                        misclassifications, layer_outs,
-                                        90) #temporary 90
-
-            filename_ochiai = experiment_path + '/' + model_name + '_' + \
-            str(args['class']) + '_ochiai_' + 'SN' + str(args['suspicious_num'])
-            suspicious_neuron_idx_ochiai = load_dominant_neurons(filename_ochiai, group_index)
-
-            available_layers = []
-            filtered_scores = []
-            for dom_ochiai in suspicious_neuron_idx_ochiai:
-                if dom_ochiai[0] not in available_layers:
-                    available_layers.append(dom_ochiai[0])
-                    filtered_scores.append(scores[dom_ochiai[0]])
-
-            suspicious_neuron_idx = find_indices(filtered_scores, 'lowest',
-                                               int(args['suspicious_num']),
-                                               available_layers)
-            print suspicious_neuron_idx
-            
-            save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
+    # elif args['approach'] == 'opposite':
+    #
+    #     try:
+    #         suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
+    #     except:
+    #         _, scores = ochiai_analysis(correct_classifications,
+    #                                     misclassifications, layer_outs,
+    #                                     90) #temporary 90
+    #
+    #         filename_ochiai = experiment_path + '/' + model_name + '_' + \
+    #         str(args['class']) + '_ochiai_' + 'SN' + str(args['suspicious_num'])
+    #         suspicious_neuron_idx_ochiai = load_dominant_neurons(filename_ochiai, group_index)
+    #
+    #         available_layers = []
+    #         filtered_scores = []
+    #         for dom_ochiai in suspicious_neuron_idx_ochiai:
+    #             if dom_ochiai[0] not in available_layers:
+    #                 available_layers.append(dom_ochiai[0])
+    #                 filtered_scores.append(scores[dom_ochiai[0]])
+    #
+    #         suspicious_neuron_idx = find_indices(filtered_scores, 'lowest',
+    #                                            int(args['suspicious_num']),
+    #                                            available_layers)
+    #         print suspicious_neuron_idx
+    #
+    #         save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
 
     elif args['approach'] == 'random':
         filename = experiment_path + '/' + model_name + '_' + args['class'] + \
@@ -293,7 +293,7 @@ if __name__ == "__main__":
         suspicious_neuron_idx_dstar
 
         forbiddens = [list(forb) for forb in forbiddens]
-        print forbiddens
+        print(forbiddens)
 
         available_layers = list(set([elem[0] for elem in suspicious_neuron_idx_tarantula]))
         available_layers += list(set([elem[0] for elem in suspicious_neuron_idx_ochiai]))
@@ -308,7 +308,7 @@ if __name__ == "__main__":
                 suspicious_neuron_idx.append([l_idx, n_idx])
 
 
-    print suspicious_neuron_idx
+    print(suspicious_neuron_idx)
 
     #dominant = {x: suspicious_neuron_idx[x - 1] for x in range(1, len(suspicious_neuron_idx) + 1)}
     logfile.write('Suspicous neurons: ' + str(suspicious_neuron_idx) + '\n')
@@ -324,8 +324,10 @@ if __name__ == "__main__":
 
 
     #selct 10 inputs randomly from the correct classification set.
-    zipped_data = random.sample(zip(list(np.array(X_val)[correct_classifications]),
-                            list(np.array(Y_val)[correct_classifications])), 10)
+    # zipped_data = random.sample(zip(list(np.array(X_val)[correct_classifications]),
+    #                         list(np.array(Y_val)[correct_classifications])), 10)
+    selected = random.sample(list(correct_classifications), 10)
+    zipped_data = zip(list(np.array(X_val)[selected]), list(np.array(Y_val)[selected]))
 
     if args['mutate'] is None or args['mutate'] is True:
          start = datetime.datetime.now()
