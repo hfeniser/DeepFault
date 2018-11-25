@@ -1,1 +1,0 @@
-Neural net tested: mnist_nnet_index0-67-22-63.txt
