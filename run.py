@@ -17,9 +17,10 @@ from sklearn.model_selection import train_test_split
 from saliency_map_analysis import saliency_map_analysis
 import random
 import datetime
+
 #Provide a seed for reproducability
 seed = 7
-experiment_path = "experiment"
+experiment_path = "experiment_results"
 model_path = "neural_networks"
 group_index = 1
 
@@ -33,7 +34,6 @@ def parse_arguments():
     # define the program description
     text = 'Fault localisation for Deep Neural Networks'
 
-    # print (os.getcwd())
     # initiate the parser
     parser = argparse.ArgumentParser(description=text)
 
@@ -111,7 +111,6 @@ if __name__ == "__main__":
 
     X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=1/6.0, random_state=seed)
 
-    print(args)
     logfile = open(args['logfile'], 'a')
     logfile.write('\n')
     logfile.write('='*75)
@@ -125,7 +124,6 @@ if __name__ == "__main__":
     # 1)train the neural network and save the network and its weights after the training
     model_name = args['model']
 
-    #if args['activation'] == 'relu':
     model_name = model_name + '_' + args['activation']
 
     try:
@@ -145,7 +143,6 @@ if __name__ == "__main__":
     #experiment_name, timestamp = create_experiment_dir(experiment_path, model_name)
 
     # test set becomes validation set (temporary)
-    # test_model(model, X_test, Y_test)
     X_val, Y_val = find_class_of(X_val, Y_val, int(args['class']))
 
 
@@ -163,7 +160,8 @@ if __name__ == "__main__":
 
     ####################
     # 3) Receive the correct classifications  & misclassifications and identify the suspicious neurons per layer
-    ############################################
+
+
     #Preparations for finding suspicious neurons
     ############################################
     available_layers = []
@@ -207,7 +205,7 @@ if __name__ == "__main__":
                 for uncov_idx in uncovered_idx:
                     num_uf[layer_idx][uncov_idx] += 1
             test_idx += 1
-    ############################################
+    
     ############################################
 
     filename = experiment_path + '/' + model_name + '_' + args['class'] + '_' +\
@@ -243,34 +241,6 @@ if __name__ == "__main__":
                                                  int(args['suspicious_num']), 3)
 
             save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
-
-
-    # elif args['approach'] == 'opposite':
-    #
-    #     try:
-    #         suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
-    #     except:
-    #         _, scores = ochiai_analysis(correct_classifications,
-    #                                     misclassifications, layer_outs,
-    #                                     90) #temporary 90
-    #
-    #         filename_ochiai = experiment_path + '/' + model_name + '_' + \
-    #         str(args['class']) + '_ochiai_' + 'SN' + str(args['suspicious_num'])
-    #         suspicious_neuron_idx_ochiai = load_dominant_neurons(filename_ochiai, group_index)
-    #
-    #         available_layers = []
-    #         filtered_scores = []
-    #         for dom_ochiai in suspicious_neuron_idx_ochiai:
-    #             if dom_ochiai[0] not in available_layers:
-    #                 available_layers.append(dom_ochiai[0])
-    #                 filtered_scores.append(scores[dom_ochiai[0]])
-    #
-    #         suspicious_neuron_idx = find_indices(filtered_scores, 'lowest',
-    #                                            int(args['suspicious_num']),
-    #                                            available_layers)
-    #         print suspicious_neuron_idx
-    #
-    #         save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
 
     elif args['approach'] == 'random':
         filename = experiment_path + '/' + model_name + '_' + args['class'] + \
@@ -308,24 +278,19 @@ if __name__ == "__main__":
                 suspicious_neuron_idx.append([l_idx, n_idx])
 
 
-    print(suspicious_neuron_idx)
 
-    #dominant = {x: suspicious_neuron_idx[x - 1] for x in range(1, len(suspicious_neuron_idx) + 1)}
     logfile.write('Suspicous neurons: ' + str(suspicious_neuron_idx) + '\n')
 
     ####################
-    # 4) Run Mutation Algorithm
-    # Receive the set of dominant neurons for each layer from Step 3 # and will produce new inputs based on
-    # the correct classifications (from the testing set) that exercise the
-    # suspicious neurons
+    # 4) Run Input Synthesis Algorithm
+    # Receive the set of suspicious neurons for each layer from Step 3 # and 
+    # will produce new inputs based on the correct classifications (from the 
+    # testing set) that exercise the suspicious neurons
 
     perturbed_xs = []
     perturbed_ys = []
 
-
-    #selct 10 inputs randomly from the correct classification set.
-    # zipped_data = random.sample(zip(list(np.array(X_val)[correct_classifications]),
-    #                         list(np.array(Y_val)[correct_classifications])), 10)
+    #select 10 inputs randomly from the correct classification set.
     selected = random.sample(list(correct_classifications), 10)
     zipped_data = zip(list(np.array(X_val)[selected]), list(np.array(Y_val)[selected]))
 
@@ -350,8 +315,6 @@ if __name__ == "__main__":
     perturbed_xs = np.asarray(perturbed_xs).reshape(np.asarray(perturbed_xs).shape[0], 1, 28, 28)#
     perturbed_ys = np.asarray(perturbed_ys).reshape(np.asarray(perturbed_ys).shape[0], 10)#
 
-
-    ####################
     #save perturtbed inputs
     filename = path.join(experiment_path, experiment_name)
     #filename = filename + '_layer' + str(layer)
@@ -359,6 +322,9 @@ if __name__ == "__main__":
         save_perturbed_test_groups(perturbed_xs, perturbed_ys, filename, group_index)
         save_original_inputs(x_original, filename, group_index)
 
+
+    ####################
+    # 5) Test if the mutated inputs are adversarial
     score = model.evaluate(perturbed_xs, perturbed_ys, verbose=0)
     logfile.write('Model: ' + str(model_name) + ', Activation: ' +
                   args['activation'] + ', Class: ' + args['class'] +
@@ -367,13 +333,11 @@ if __name__ == "__main__":
                   str(score) + '\n')
     logfile.write('Mutation Time: ' + str(end-start) + '\n')
 
-    ####################
-    # 5) Test if the mutated inputs are adversarial
-    #test_model(model, x_perturbed, y_perturbed)
-
     logfile.close()
 
+
     '''
+    Currently not available
     ####################
     # 5) retrain the model
     # train_model_fault_localisation(model, x_perturbed, y_perturbed, len(x_perturbed))
