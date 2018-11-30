@@ -14,6 +14,8 @@ from os import path, makedirs
 import traceback
 import math
 
+SEED = 7
+
 def load_CIFAR():
     (X_train, y_train), (X_test, y_test) = cifar10.load_data()
 
@@ -202,18 +204,20 @@ def load_perturbed_test_groups(filename, group_index):
         return x_perturbed, y_perturbed
 
 
-def create_experiment_dir(experiment_path, model_name):
-    # define experiment name
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    experiment_name = path.join(experiment_path, model_name + "_" + timestamp)
+def create_experiment_dir(experiment_path, model_name,
+                            selected_class, step_size,
+                            approach, susp_num, repeat):
+
+    # define experiment name, create directory experiments directory if it
+    # doesnt exist
+    experiment_name = model_name + '_C' + str(selected_class) + '_SS' + \
+    str(step_size) + '_' + approach + '_SN' + str(susp_num) + '_R' + str(repeat)
+    
 
     if not path.exists(experiment_path):
         makedirs(experiment_path)
 
-    if not path.exists(path.join(experiment_path, experiment_name)):
-        makedirs(path.join(experiment_path, experiment_name))
-
-    return experiment_name, timestamp
+    return experiment_name
 
 
 def save_classifications(correct_classifications, misclassifications, filename, group_index):
@@ -320,8 +324,7 @@ def save_original_inputs(original_inputs, filename, group_index):
     return
 
 
-
-def find_class_of(X, Y, desired_class):
+def filter_val_set(desired_class, X, Y):
     X_class = []
     Y_class = []
     for x,y in zip(X,Y):
@@ -332,6 +335,63 @@ def find_class_of(X, Y, desired_class):
     print("Validation set filtered for desired class: " + str(desired_class))
 
     return np.array(X_class), np.array(Y_class)
+
+
+def normalize(x):
+    # utility function to normalize a tensor by its L2 norm
+    return x / (K.sqrt(K.mean(K.square(x))) + 1e-5)
+
+
+def get_trainable_layers(model):
+    
+    trainable_layers = []
+    for layer in model.layers:
+        try:
+            weights = layer.get_weights()[0]
+            trainable_layers.append(model.layers.index(layer))
+        except:
+            pass
+
+    trainable_layers = trainable_layers[:-1]  #ignore the output layer
+
+    return trainable_layers
+
+
+def construct_spectrum_matrices(model, trainable_layers,
+                                correct_classifications, misclassifications,
+                                layer_outs):
+    scores = []
+    num_cf = []
+    num_uf = []
+    num_cs = []
+    num_us = []
+    for tl in trainable_layers:
+        num_cf.append(np.zeros(model.layers[tl].output_shape[1]))  # covered (activated) and failed
+        num_uf.append(np.zeros(model.layers[tl].output_shape[1]))  # uncovered (not activated) and failed
+        num_cs.append(np.zeros(model.layers[tl].output_shape[1]))  # covered and succeeded
+        num_us.append(np.zeros(model.layers[tl].output_shape[1]))  # uncovered and succeeded
+        scores.append(np.zeros(model.layers[tl].output_shape[1]))
+
+
+    for tl in trainable_layers:
+        layer_idx = trainable_layers.index(al)
+        test_idx = 0
+        for l in layer_outs[tl][0]:
+            covered_idx   = list(np.where(l  > 0)[0])
+            uncovered_idx = list(np.where(l <= 0)[0])
+            if test_idx  in correct_classifications:
+                for cov_idx in covered_idx:
+                    num_cs[layer_idx][cov_idx] += 1
+                for uncov_idx in uncovered_idx:
+                    num_us[layer_idx][uncov_idx] += 1
+            elif test_idx in misclassifications:
+                for cov_idx in covered_idx:
+                    num_cf[layer_idx][cov_idx] += 1
+                for uncov_idx in uncovered_idx:
+                    num_uf[layer_idx][uncov_idx] += 1
+            test_idx += 1
+
+    return scores, num_cf, num_uf, num_cs, num_cf
 
 def cone_of_influence_analysis(model, dominants):
 
@@ -375,6 +435,3 @@ def weight_analysis(model):
     return deactivatables
 
 
-def normalize(x):
-    # utility function to normalize a tensor by its L2 norm
-    return x / (K.sqrt(K.mean(K.square(x))) + 1e-5)

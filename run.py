@@ -7,18 +7,17 @@ from test_nn import test_model
 from lp import run_lp
 from os import path
 from spectrum_analysis import *
-from utils import create_experiment_dir, save_perturbed_test_groups, load_perturbed_test_groups
+from utils import save_perturbed_test_groups, load_perturbed_test_groups
 from utils import load_dominant_neurons, save_dominant_neurons
-from utils import load_classifications, save_classifications, save_layer_outs, load_layer_outs
+from utils import create_experiment_dir, get_trainable_layers
+from utils import load_classifications, save_classifications
+from utils import save_layer_outs, load_layer_outs, construct_spectrum_matrices
 from utils import find_class_of, load_data, load_model, save_original_inputs
 from mutate_via_gradient import synthesize
 from sklearn.model_selection import train_test_split
 from saliency_map_analysis import saliency_map_analysis
-import random
 import datetime
 
-#Provide a seed for reproducability
-seed = 7
 experiment_path = "experiment_results"
 model_path = "neural_networks"
 group_index = 1
@@ -31,181 +30,110 @@ def parse_arguments():
     """
 
     # define the program description
-    text = 'Fault localisation for Deep Neural Networks'
+    text = 'Spectrum Based Fault Localization for Deep Neural Networks'
 
     # initiate the parser
     parser = argparse.ArgumentParser(description=text)
 
     # add new command-line arguments
-    parser.add_argument("-V", "--version", help="show program version", action="store_true")
-    parser.add_argument("-HL", "--hidden",  help="number of hidden layers")
-    parser.add_argument("-N", "--neurons", help="number of neurons in each hidden layer")
-    parser.add_argument("-M", "--model",   help="the model to be loaded. When set, the specified model is used")
-    parser.add_argument("-T", "--test",   help="the model to be loaded. When set, the specified model is used")
-    parser.add_argument("-A", "--approach", help="the approach to be employed to localize dominant neurons")
-    parser.add_argument("-L", "--lp", help="whether to use linear programming to generate the perturbed inputs or" +
-                                           " the perturbed input file to be used")
-    parser.add_argument("-D", "--distance", help="the distance between the original and the mutated image.")
-    parser.add_argument("-P", "--percentile", help="the percentage of suspicious neurons in all neurons.")
-    parser.add_argument("-C", "--class", help="the label of inputs to analyze.")
-    parser.add_argument("-MU", "--mutate", help="whether to mutate inputs or load previously mutated inputs")
-    parser.add_argument("-AC", "--activation", help="activation function or hidden neurons. it can be \"relu\" or \"leaky_relu\"")
-    parser.add_argument("-SN", "--suspicious_num", help="number of suspicious neurons we consider")
-    parser.add_argument("-SS", "--step_size", help="multiplication of gradients by step size")
-    parser.add_argument("-R", "--repeat", help="index of the repeating. (for the cases where we run the same experiment multiple times)")
+    parser.add_argument("-V", "--version",  help="show program version",
+                        action="store_true")
+    parser.add_argument("-HL", "--hidden",  help="number of hidden layers",
+                        type=int)
+    parser.add_argument("-N", "--neurons",  help="number of neurons in each \
+                        hidden layer", type=int)
+    parser.add_argument("-M", "--model",    help="the model to be loaded. When\
+                        set, the specified model is used", required=True)
+    parser.add_argument("-A", "--approach", help="the approach to be employed \
+                        to localize dominant neurons")
+    parser.add_argument("-D", "--distance",   help="the distance between the \
+                        original and the mutated image.", type=float)
+    parser.add_argument("-C", "--class",      help="the label of inputs to \
+                        analyze.", type= int)
+    parser.add_argument("-AC", "--activation",     help="activation function \
+                        or hidden neurons. it can be \"relu\" or \"leaky_relu\"")
+    parser.add_argument("-SN", "--suspicious_num", help="number of suspicious \
+                        neurons we consider", type=int)
+    parser.add_argument("-SS", "--step_size",      help="multiplication of \
+                        gradients by step size", type=float)
+    parser.add_argument("-R", "--repeat",    help="index of the repeating. (for\
+                        the cases where you need to run the same experiment \
+                        multiple times)", type=int)
+    parser.add_argument("-S", "--seed",      help="Seed for random processes. \
+                        If not provided seed will be selected randomly.", type=int)
+    parser.add_argument("-ST", "--star",     help="DStar\'s Star \
+                        hyperparameter. Has an effect when selected approach is\
+                        DStar", type=int)
     parser.add_argument("-LOG", "--logfile", help="path to log file")
 
     # parse command-line arguments
     args = parser.parse_args()
-
-    # check arguments
-    valid_args = True
-    try:
-        print(args)
-        if args.version:
-            print("this is myprogram version 1.0")
-        if args.hidden:
-            if isinstance(args.hidden, int) or args.hidden.isdigit():
-                value = int(args.hidden)
-                args.hidden = value
-                print("The NN has %s hidden layers" % args.hidden)
-            else:
-                raise ValueError("%s is an invalid argument for the number of neurons in hidden layers" % args.hidden)
-        if args.neurons:
-            if isinstance(args.neurons, int) or args.neurons.isdigit():
-                value = int(args.neurons)
-                args.neurons = value
-                print("Each hidden layer has %s neurons" % args.neurons)
-            else:
-                raise ValueError("%s is an invalid argument for the number of neurons in hidden layers" % args.neurons)
-#        if args.model:
-#            if not (path.isfile(args.model+".json") and
-#                    path.isfile(args.model + ".h5")):
-#                raise FileNotFoundError("Model %s not found" % args.model)
-        if args.test:
-            if args.test == 'True':
-                args.test = True
-            elif args.test == 'False':
-                args.test = False
-            else:
-                raise ValueError("Test argument is not valid ('%s')" % args.test)
-    except (ValueError,ValueError) as e:
-        valid_args = False
-        print(e)
-
-    if not valid_args:
-        exit(-1)
 
     return vars(args)
 
 
 
 if __name__ == "__main__":
-
     args = parse_arguments()
+    model_name     = args['model']
+    selected_class = args['class'] if not args['class'] == None else 0
+    step_size      = args['step_size'] if not args['step_size'] == None else 1
+    approach       = args['approach'] if not args['approach'] == None else 'tarantula'
+    susp_num       = args['suspicious_num'] if not args['suspicious_num'] == None else 1
+    repeat         = args['repeat'] if not args['repeat'] == None else 1
+    seed           = args['seed'] if not args['seed'] == None else random.randint(0,10)
+    star           = args['star'] if not args['star'] == None else 3
+    logfile_name   = args['logfile'] if not args['logfile'] == None else 'result.log'
 
     ####################
     # 0) Load MNIST data
     X_train, Y_train, X_test, Y_test = load_data()
 
-    X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=1/6.0, random_state=seed)
+    X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train,
+                                                      test_size=1/6.0,
+                                                      random_state=seed)
 
-    logfile = open(args['logfile'], 'a')
-    logfile.write('\n')
-    logfile.write('='*75)
-    logfile.write('\n')
-    logfile.write(str(args) + '\n')
-    logfile.write('='*75)
-    logfile.write('\n')
+    logfile = open(logfile_name, 'a')
 
 
     ####################
-    # 1)train the neural network and save the network and its weights after the training
-    model_name = args['model']
-
-    model_name = model_name + '_' + args['activation']
-
+    # 1) Load the pretrained network.
     try:
         model = load_model(path.join(model_path, model_name))
     except:
+        logfile.write("Model not found! Provide a pre-trained model model as input.")
         model_name, model = train_model(args, X_train, Y_train, X_test, Y_test)
 
-    #if args['model'] is None or args['model'] is True:
-    #    model_name, model = train_model(args, X_train, Y_train, X_test, Y_test)
-    #else:# if the model is given as a command-line argument don't train it again
-    #    model_name = args['model']
-    #    model = load_model(path.join(model_path, model_name))
+    experiment_name = create_experiment_dir(experiment_path, model_name,
+                                            selected_class, step_size,
+                                            approach, susp_num, repeat)
 
-    experiment_name = model_name + '_' + str(args['class']) + '_' + \
-    str(args['step_size']) + '_' + args['approach'] + '_SN' + \
-    str(args['suspicious_num']) + '_R' + str(args['repeat'])
-    #experiment_name, timestamp = create_experiment_dir(experiment_path, model_name)
-
-    # test set becomes validation set (temporary)
-    X_val, Y_val = find_class_of(X_val, Y_val, int(args['class']))
+    X_val, Y_val = filter_val_set(selected_class, X_val, Y_val)
 
 
     ####################
     # 2)test the model and receive the indexes of correct and incorrect classifications
     # Also provide output of each neuron in each layer for test input x.
-    filename = experiment_path + '/' + model_name + '_' + args['class']
+    filename = experiment_path + '/' + model_name + '_' + str(selected_class)
     try:
         correct_classifications, misclassifications = load_classifications(filename, group_index)
         layer_outs = load_layer_outs(filename, group_index)
     except:
-        correct_classifications, misclassifications, layer_outs, y_predictions = test_model(model, X_val, Y_val)
+        correct_classifications, misclassifications, layer_outs, predictions = test_model(model, X_val, Y_val)
         save_classifications(correct_classifications, misclassifications, filename, group_index)
         save_layer_outs(layer_outs, filename, group_index)
 
     ####################
-    # 3) Receive the correct classifications  & misclassifications and identify the suspicious neurons per layer
+    # 3) Receive the correct classifications  & misclassifications and identify 
+    # the suspicious neurons per layer
 
 
-    #Preparations for finding suspicious neurons
-    ############################################
-    available_layers = []
-    for layer in model.layers:
-        try:
-            weights = layer.get_weights()[0]
-            available_layers.append(model.layers.index(layer))
-        except:
-            pass
-        
-    available_layers = available_layers[:-1] #ignore the output layer
-
-    scores = []
-    num_cf = []
-    num_uf = []
-    num_cs = []
-    num_us = []
-    for al in available_layers: 
-        num_cf.append(np.zeros(model.layers[al].output_shape[1]))  # covered (activated) and failed
-        num_uf.append(np.zeros(model.layers[al].output_shape[1]))  # uncovered (not activated) and failed
-        num_cs.append(np.zeros(model.layers[al].output_shape[1]))  # covered and succeeded
-        num_us.append(np.zeros(model.layers[al].output_shape[1]))  # uncovered and succeeded
-        scores.append(np.zeros(model.layers[al].output_shape[1]))
-
-
-    for al in available_layers:
-        layer_idx = available_layers.index(al)
-        all_neuron_idx = range(model.layers[al].output_shape[1]) 
-        test_idx = 0
-        for l in layer_outs[al][0]:
-            covered_idx   = list(np.where(l > 0)[0])
-            uncovered_idx = list(set(all_neuron_idx)-set(covered_idx))
-            if test_idx  in correct_classifications:
-                for cov_idx in covered_idx:
-                    num_cs[layer_idx][cov_idx] += 1
-                for uncov_idx in uncovered_idx:
-                    num_us[layer_idx][uncov_idx] += 1
-            elif test_idx in misclassifications:
-                for cov_idx in covered_idx:
-                    num_cf[layer_idx][cov_idx] += 1
-                for uncov_idx in uncovered_idx:
-                    num_uf[layer_idx][uncov_idx] += 1
-            test_idx += 1
-    
-    ############################################
+    trainable_layers = get_trainable_layers(model)
+    scores, num_cf, num_uf, num_cs, num_cf = construct_spectrum_matrices(model,
+                                                                        trainable_layers,
+                                                                        correct_classifications,
+                                                                        misclassifications,
+                                                                        layer_outs)
 
     filename = experiment_path + '/' + model_name + '_' + args['class'] + '_' +\
     args['approach'] +  '_SN' +  str(args['suspicious_num'])
@@ -214,9 +142,9 @@ if __name__ == "__main__":
         try:
             suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
-            suspicious_neuron_idx = tarantula_analysis(available_layers, scores, 
-                                                 num_cf, num_uf, num_cs, num_us, 
-                                                 int(args['suspicious_num']))
+            suspicious_neuron_idx = tarantula_analysis(trainable_layers, scores,
+                                                 num_cf, num_uf, num_cs, num_us,
+                                                 susp_num)
 
 
             save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
@@ -225,9 +153,9 @@ if __name__ == "__main__":
         try:
             suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
-            suspicious_neuron_idx = ochiai_analysis(available_layers, scores, 
-                                                 num_cf, num_uf, num_cs, num_us, 
-                                                 int(args['suspicious_num']))
+            suspicious_neuron_idx = ochiai_analysis(trainable_layers, scores,
+                                                 num_cf, num_uf, num_cs, num_us,
+                                                 susp_num)
 
             save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
 
@@ -235,13 +163,16 @@ if __name__ == "__main__":
         try:
             suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
         except:
-            suspicious_neuron_idx = dstar_analysis(available_layers, scores, 
-                                                 num_cf, num_uf, num_cs, num_us, 
-                                                 int(args['suspicious_num']), 3)
+            suspicious_neuron_idx = dstar_analysis(trainable_layers, scores,
+                                                 num_cf, num_uf, num_cs, num_us,
+                                                 susp_num, star)
 
             save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
 
     elif args['approach'] == 'random':
+        # Random fault localization has to be run after running Tarantula,
+        # Ochiai and DStar with the same parameters.
+ 
         filename = experiment_path + '/' + model_name + '_' + args['class'] + \
         '_tarantula_' + 'SN' + str(args['suspicious_num'])
 
@@ -257,17 +188,15 @@ if __name__ == "__main__":
 
         suspicious_neuron_idx_dstar = load_dominant_neurons(filename, group_index)
 
-
         forbiddens = suspicious_neuron_idx_ochiai + suspicious_neuron_idx_tarantula  + \
         suspicious_neuron_idx_dstar
 
         forbiddens = [list(forb) for forb in forbiddens]
-        print(forbiddens)
 
         available_layers = list(set([elem[0] for elem in suspicious_neuron_idx_tarantula]))
         available_layers += list(set([elem[0] for elem in suspicious_neuron_idx_ochiai]))
         available_layers += list(set([elem[0] for elem in suspicious_neuron_idx_dstar]))
-        
+
         suspicious_neuron_idx = []
         while len(suspicious_neuron_idx) < int(args['suspicious_num']):
             l_idx = random.choice(available_layers)
@@ -275,7 +204,6 @@ if __name__ == "__main__":
 
             if [l_idx, n_idx] not in forbiddens and [l_idx, n_idx] not in suspicious_neuron_idx:
                 suspicious_neuron_idx.append([l_idx, n_idx])
-
 
 
     logfile.write('Suspicous neurons: ' + str(suspicious_neuron_idx) + '\n')
@@ -290,19 +218,19 @@ if __name__ == "__main__":
     perturbed_ys = []
 
     #select 10 inputs randomly from the correct classification set.
-    selected = random.sample(list(correct_classifications), 10)
+    selected = np.random.choice(list(correct_classifications), 10)
     zipped_data = zip(list(np.array(X_val)[selected]), list(np.array(Y_val)[selected]))
 
-    if args['mutate'] is None or args['mutate'] is True:
+    if args['synthesize'] is None or args['synthesize'] is True:
          start = datetime.datetime.now()
          x_perturbed, y_perturbed, x_original = synthesize(model, zipped_data,
                                            suspicious_neuron_idx,
                                            correct_classifications,
-                                           float(args['step_size']),
-                                           float(args['distance']))
+                                           step_size,
+                                           distance)
          end = datetime.datetime.now()
     else:
-        filename = args['mutate'] + args['approach']
+        filename = args['synthesize'] + args['approach']
         filename = path.join(experiment_path, filename)
         x_perturbed, y_perturbed = load_perturbed_test_groups(filename, group_index)
 
@@ -317,7 +245,7 @@ if __name__ == "__main__":
     #save perturtbed inputs
     filename = path.join(experiment_path, experiment_name)
     #filename = filename + '_layer' + str(layer)
-    if args['mutate'] is None or args['mutate'] is True:
+    if args['synthesize'] is None or args['synthesize'] is True:
         save_perturbed_test_groups(perturbed_xs, perturbed_ys, filename, group_index)
         save_original_inputs(x_original, filename, group_index)
 
