@@ -6,7 +6,6 @@ from keras import backend as K
 import sys
 from sklearn.metrics import classification_report, confusion_matrix
 from math import ceil
-#import matplotlib.pyplot as plt
 import numpy as np
 import h5py
 from datetime import datetime
@@ -14,7 +13,6 @@ from os import path, makedirs
 import traceback
 import math
 
-SEED = 7
 
 def load_CIFAR():
     (X_train, y_train), (X_test, y_test) = cifar10.load_data()
@@ -374,7 +372,7 @@ def construct_spectrum_matrices(model, trainable_layers,
 
 
     for tl in trainable_layers:
-        layer_idx = trainable_layers.index(al)
+        layer_idx = trainable_layers.index(tl)
         test_idx = 0
         for l in layer_outs[tl][0]:
             covered_idx   = list(np.where(l  > 0)[0])

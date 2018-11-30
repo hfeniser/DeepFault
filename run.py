@@ -1,7 +1,6 @@
 """
 This is the main file that executes the flow of DeepFault
 """
-import argparse
 from train_nn import train_model, train_model_fault_localisation
 from test_nn import test_model
 from lp import run_lp
@@ -12,16 +11,17 @@ from utils import load_dominant_neurons, save_dominant_neurons
 from utils import create_experiment_dir, get_trainable_layers
 from utils import load_classifications, save_classifications
 from utils import save_layer_outs, load_layer_outs, construct_spectrum_matrices
-from utils import find_class_of, load_data, load_model, save_original_inputs
-from mutate_via_gradient import synthesize
+from utils import filter_val_set, load_data, load_model, save_original_inputs
+from input_synthesis import synthesize
 from sklearn.model_selection import train_test_split
-from saliency_map_analysis import saliency_map_analysis
 import datetime
+import argparse
+import random
 
 experiment_path = "experiment_results"
 model_path = "neural_networks"
 group_index = 1
-
+__version__ = "v1.0"
 
 def parse_arguments():
     """
@@ -37,15 +37,11 @@ def parse_arguments():
 
     # add new command-line arguments
     parser.add_argument("-V", "--version",  help="show program version",
-                        action="store_true")
-    parser.add_argument("-HL", "--hidden",  help="number of hidden layers",
-                        type=int)
-    parser.add_argument("-N", "--neurons",  help="number of neurons in each \
-                        hidden layer", type=int)
+                        action="version", version="DeepFault " + __version__)
     parser.add_argument("-M", "--model",    help="the model to be loaded. When\
                         set, the specified model is used", required=True)
     parser.add_argument("-A", "--approach", help="the approach to be employed \
-                        to localize dominant neurons")
+                        to localize dominant neurons", required=True)
     parser.add_argument("-D", "--distance",   help="the distance between the \
                         original and the mutated image.", type=float)
     parser.add_argument("-C", "--class",      help="the label of inputs to \
@@ -78,6 +74,7 @@ if __name__ == "__main__":
     model_name     = args['model']
     selected_class = args['class'] if not args['class'] == None else 0
     step_size      = args['step_size'] if not args['step_size'] == None else 1
+    distance       = args['distance'] if not args['distance'] ==None else 0.1
     approach       = args['approach'] if not args['approach'] == None else 'tarantula'
     susp_num       = args['suspicious_num'] if not args['suspicious_num'] == None else 1
     repeat         = args['repeat'] if not args['repeat'] == None else 1
@@ -102,7 +99,7 @@ if __name__ == "__main__":
         model = load_model(path.join(model_path, model_name))
     except:
         logfile.write("Model not found! Provide a pre-trained model model as input.")
-        model_name, model = train_model(args, X_train, Y_train, X_test, Y_test)
+        exit(1)
 
     experiment_name = create_experiment_dir(experiment_path, model_name,
                                             selected_class, step_size,
@@ -123,20 +120,19 @@ if __name__ == "__main__":
         save_classifications(correct_classifications, misclassifications, filename, group_index)
         save_layer_outs(layer_outs, filename, group_index)
 
+
     ####################
     # 3) Receive the correct classifications  & misclassifications and identify 
     # the suspicious neurons per layer
-
-
     trainable_layers = get_trainable_layers(model)
-    scores, num_cf, num_uf, num_cs, num_cf = construct_spectrum_matrices(model,
+    scores, num_cf, num_uf, num_cs, num_us = construct_spectrum_matrices(model,
                                                                         trainable_layers,
                                                                         correct_classifications,
                                                                         misclassifications,
                                                                         layer_outs)
 
-    filename = experiment_path + '/' + model_name + '_' + args['class'] + '_' +\
-    args['approach'] +  '_SN' +  str(args['suspicious_num'])
+    filename = experiment_path + '/' + model_name + '_C' + str(selected_class) + '_' +\
+    approach +  '_SN' +  str(susp_num)
 
     if args['approach'] == 'tarantula':
         try:
@@ -145,7 +141,6 @@ if __name__ == "__main__":
             suspicious_neuron_idx = tarantula_analysis(trainable_layers, scores,
                                                  num_cf, num_uf, num_cs, num_us,
                                                  susp_num)
-
 
             save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
 
@@ -172,19 +167,19 @@ if __name__ == "__main__":
     elif args['approach'] == 'random':
         # Random fault localization has to be run after running Tarantula,
         # Ochiai and DStar with the same parameters.
- 
-        filename = experiment_path + '/' + model_name + '_' + args['class'] + \
-        '_tarantula_' + 'SN' + str(args['suspicious_num'])
+
+        filename = experiment_path + '/' + model_name + '_C' + str(selected_class) \
+        + '_tarantula_' + 'SN' + str(susp_num)
 
         suspicious_neuron_idx_tarantula = load_dominant_neurons(filename, group_index)
 
-        filename = experiment_path + '/' + model_name + '_' + args['class'] + \
-        '_ochiai_' + 'SN' + str(args['suspicious_num'])
+        filename = experiment_path + '/' + model_name + '_C' + str(selected_class) \
+        + '_ochiai_' + 'SN' + str(susp_num)
 
         suspicious_neuron_idx_ochiai = load_dominant_neurons(filename, group_index)
 
-        filename = experiment_path + '/' + model_name + '_' + args['class'] + \
-        '_dstar_' + 'SN' + str(args['suspicious_num'])
+        filename = experiment_path + '/' + model_name + '_C' + str(selected_class) \
+        + '_dstar_' + 'SN' + str(susp_num)
 
         suspicious_neuron_idx_dstar = load_dominant_neurons(filename, group_index)
 
@@ -198,7 +193,7 @@ if __name__ == "__main__":
         available_layers += list(set([elem[0] for elem in suspicious_neuron_idx_dstar]))
 
         suspicious_neuron_idx = []
-        while len(suspicious_neuron_idx) < int(args['suspicious_num']):
+        while len(suspicious_neuron_idx) < susp_num:
             l_idx = random.choice(available_layers)
             n_idx = random.choice(range(model.layers[l_idx].output_shape[1]))
 
@@ -217,48 +212,40 @@ if __name__ == "__main__":
     perturbed_xs = []
     perturbed_ys = []
 
-    #select 10 inputs randomly from the correct classification set.
+    # select 10 inputs randomly from the correct classification set.
     selected = np.random.choice(list(correct_classifications), 10)
     zipped_data = zip(list(np.array(X_val)[selected]), list(np.array(Y_val)[selected]))
 
-    if args['synthesize'] is None or args['synthesize'] is True:
-         start = datetime.datetime.now()
-         x_perturbed, y_perturbed, x_original = synthesize(model, zipped_data,
+    syn_start = datetime.datetime.now()
+    x_perturbed, y_perturbed, x_original = synthesize(model, zipped_data,
                                            suspicious_neuron_idx,
                                            correct_classifications,
                                            step_size,
                                            distance)
-         end = datetime.datetime.now()
-    else:
-        filename = args['synthesize'] + args['approach']
-        filename = path.join(experiment_path, filename)
-        x_perturbed, y_perturbed = load_perturbed_test_groups(filename, group_index)
+    syn_end = datetime.datetime.now()
 
     perturbed_xs = perturbed_xs + x_perturbed
     perturbed_ys = perturbed_ys + y_perturbed
 
 
     # reshape them into the expected format
-    perturbed_xs = np.asarray(perturbed_xs).reshape(np.asarray(perturbed_xs).shape[0], 1, 28, 28)#
-    perturbed_ys = np.asarray(perturbed_ys).reshape(np.asarray(perturbed_ys).shape[0], 10)#
+    perturbed_xs = np.asarray(perturbed_xs).reshape(np.asarray(perturbed_xs).shape[0], 1, 28, 28)
+    perturbed_ys = np.asarray(perturbed_ys).reshape(np.asarray(perturbed_ys).shape[0], 10)
 
     #save perturtbed inputs
     filename = path.join(experiment_path, experiment_name)
-    #filename = filename + '_layer' + str(layer)
-    if args['synthesize'] is None or args['synthesize'] is True:
-        save_perturbed_test_groups(perturbed_xs, perturbed_ys, filename, group_index)
-        save_original_inputs(x_original, filename, group_index)
+    save_perturbed_test_groups(perturbed_xs, perturbed_ys, filename, group_index)
+    save_original_inputs(x_original, filename, group_index)
 
 
     ####################
     # 5) Test if the mutated inputs are adversarial
     score = model.evaluate(perturbed_xs, perturbed_ys, verbose=0)
-    logfile.write('Model: ' + str(model_name) + ', Activation: ' +
-                  args['activation'] + ', Class: ' + args['class'] +
-                  ', Approach: ' + str(args['approach']) + ', Distance: ' +
-                  str(args['distance']) + ', Score: ' +
-                  str(score) + '\n')
-    logfile.write('Mutation Time: ' + str(end-start) + '\n')
+    logfile.write('Model: ' + model_name + ', Class: ' + str(selected_class) +
+                  ', Approach: ' + approach + ', Distance: ' +
+                  str(distance) + ', Score: ' + str(score) + '\n')
+
+    logfile.write('Input Synthesis Time: ' + str(syn_end-syn_start) + '\n')
 
     logfile.close()
 
