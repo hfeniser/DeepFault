@@ -4,12 +4,9 @@ import numpy as np
 
 def test_model(model, X_test, Y_test):
     """
-    Test a neural network on the MNIST dataset.
+    Test a neural network.
     :return: indexes from testing set of correct and incorrect classifications
     """
-
-    # Load saved model
-    # model = load_model(model_name)
 
     # Find activations of each neuron in each layer for each input x in X_test
     layer_outs = get_layer_outs(model, X_test)
@@ -47,7 +44,3 @@ def test_model(model, X_test, Y_test):
     return correct_classifications, misclassifications, layer_outs, Y_pred_class
 
 
-if __name__ == "__main__":
-    model = load_model("neural_networks/mnist_test_model_8_20_leaky_relu")
-    X_train, Y_train, X_test, Y_test = load_data()
-    test_model(model, X_test, Y_test)
