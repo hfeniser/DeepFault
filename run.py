@@ -1,7 +1,6 @@
 """
 This is the main file that executes the flow of DeepFault
 """
-from train_nn import train_model, train_model_fault_localisation
 from test_nn import test_model
 from lp import run_lp
 from os import path

@@ -231,6 +231,7 @@ def save_classifications(correct_classifications, misclassifications, filename, 
 
 def load_classifications(filename, group_index):
     filename = filename + '_classifications.h5'
+    print filename
     try:
         with h5py.File(filename, 'r') as hf:
             group = hf.get('group' + str(group_index))
