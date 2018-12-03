@@ -66,25 +66,42 @@ if __name__ == "__main__":
 
     trainable_layers = get_trainable_layers(model)
 
-    penultimate_outs = layer_outs[trainable_layers[-1]][0]
+    ###############################
+    ### LAYER-BY-LAYER ANALYSIS ###
+    ###############################
+    for tl in trainable_layers:
+        louts = layer_outs[tl][0]
+        lc = louts[correct_classifications][0]
+        lm = louts[misclassifications][0]
+        print("DISTANCE: " + str(np.linalg.norm(lc-lm)))
+
+
+    exit()
+
+    ############################
+    ### CLUSTERING ANALYSSIS ###
+    ############################
+    penultimate_outs = layer_outs[trainable_layers[-5]][0]
     labels = np.zeros(len(penultimate_outs))
     labels[misclassifications] = 1
     sm = SMOTE(random_state = seed)
     penultimate_outs, _ = sm.fit_sample(penultimate_outs, labels)
 
-    #clustering = KMeans(n_clusters = 2).fit(penultimate_outs) # there are 2 clusters: correct and mis-classifications
+    clustering = KMeans(n_clusters = 2).fit(penultimate_outs) # there are 2 clusters: correct and mis-classifications
 
     #clustering = AgglomerativeClustering(n_clusters=2, affinity='euclidean',
     #                                     linkage='ward').fit(penultimate_outs)
 
-    clustering = SpectralClustering(n_clusters=2, assign_labels='discretize',
-                            random_state=0, affinity='rbf').fit(penultimate_outs)
+    #clustering = SpectralClustering(n_clusters=2, assign_labels='discretize',
+    #                        random_state=0, affinity='rbf').fit(penultimate_outs)
 
     unique, counts = np.unique(clustering.labels_, return_counts = True)
     print(dict(zip(unique,counts)))
 
-    exit()
 
+    #########################################
+    ### STATISTICAL SIGNIFICANCE ANALYSIS ###
+    #########################################
     print("CLASS: " + str(selected_class))
     for tl in trainable_layers:
         louts = layer_outs[tl][0]
