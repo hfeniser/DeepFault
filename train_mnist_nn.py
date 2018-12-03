@@ -1,17 +1,20 @@
 from keras.models import Sequential
 from keras.layers import Dense, Flatten, LeakyReLU, Activation
 from utils import get_python_version
+from os import path
 
 python_version = get_python_version()
 
 
-def __save_trained_model(model, num_hidden, num_neuron):
+def __save_trained_model(model, num_hidden, num_neuron,
+                         model_prefix='mnist_test_model'):
+
     directory = "neural_networks/"
 
     if not path.exists(directory):
         makedirs(directory)
 
-    model_name = 'mnist_test_model_' + str(num_hidden) + '_' + str(num_neuron) 
+    model_name = model_prefix + '_' + str(num_hidden) + '_' + str(num_neuron) 
     model_filename = directory + model_name + ".json"
     weights_filename = directory + model_name + ".h5"
 

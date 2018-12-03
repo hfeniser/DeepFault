@@ -71,8 +71,8 @@ if __name__ == "__main__":
     ###############################
     for tl in trainable_layers:
         louts = layer_outs[tl][0]
-        lc = louts[correct_classifications][0]
-        lm = louts[misclassifications][0]
+        lc = np.mean(louts[correct_classifications], axis=0)
+        lm = np.mean(louts[misclassifications], axis=0)
         print("DISTANCE: " + str(np.linalg.norm(lc-lm)))
 
 
