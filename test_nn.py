@@ -1,4 +1,5 @@
-from utils import calculate_prediction_metrics, get_layer_outs, load_data, load_model
+from utils import calculate_prediction_metrics, get_layer_outs
+from utils import load_MNIST, load_CIFAR, load_model
 import numpy as np
 
 
@@ -25,10 +26,10 @@ def test_model(model, X_test, Y_test):
     calculate_prediction_metrics(Y_test, Y_pred, score)
 
     # Find test and prediction classes
-    Y_test_class = np.argmax(Y_test, axis=1)
-    Y_pred_class = np.argmax(Y_pred, axis=1)
+    expectations = np.argmax(Y_test, axis=1)
+    predictions  = np.argmax(Y_pred, axis=1)
 
-    classifications = np.absolute(Y_test_class - Y_pred_class)
+    classifications = np.absolute(expectations - predictions)
 
     # Find correct classifications and misclassifications
     correct_classifications = []
@@ -41,6 +42,5 @@ def test_model(model, X_test, Y_test):
 
     print("Testing done!\n")
 
-    return correct_classifications, misclassifications, layer_outs, Y_pred_class
-
+    return correct_classifications, misclassifications, layer_outs, predictions
 

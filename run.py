@@ -6,11 +6,12 @@ from lp import run_lp
 from os import path
 from spectrum_analysis import *
 from utils import save_perturbed_test_groups, load_perturbed_test_groups
-from utils import load_dominant_neurons, save_dominant_neurons
+from utils import load_suspicious_neurons, save_suspicious_neurons
 from utils import create_experiment_dir, get_trainable_layers
 from utils import load_classifications, save_classifications
 from utils import save_layer_outs, load_layer_outs, construct_spectrum_matrices
-from utils import filter_val_set, load_data, load_model, save_original_inputs
+from utils import load_MNIST, load_CIFAR, load_model
+from utils import filter_val_set, save_original_inputs
 from input_synthesis import synthesize
 from sklearn.model_selection import train_test_split
 import datetime
@@ -37,13 +38,15 @@ def parse_arguments():
     # add new command-line arguments
     parser.add_argument("-V", "--version",  help="show program version",
                         action="version", version="DeepFault " + __version__)
-    parser.add_argument("-M", "--model",    help="the model to be loaded. When\
-                        set, the specified model is used", required=True)
+    parser.add_argument("-M", "--model",    help="The model to be loaded. The \
+                        specified model will be analyzed.", required=True)
+    parser.add_argument("-DS", "--dataset", help="The dataset to be used (mnist\
+                        or cifar10).", choices=["mnist","cifar10"])
     parser.add_argument("-A", "--approach", help="the approach to be employed \
-                        to localize dominant neurons", required=True)
+                        to localize dominant neurons")
     parser.add_argument("-D", "--distance",   help="the distance between the \
                         original and the mutated image.", type=float)
-    parser.add_argument("-C", "--class",      help="the label of inputs to \
+    parser.add_argument("-C", "--class", help="the label of inputs to \
                         analyze.", type= int)
     parser.add_argument("-AC", "--activation",     help="activation function \
                         or hidden neurons. it can be \"relu\" or \"leaky_relu\"")
@@ -54,9 +57,9 @@ def parse_arguments():
     parser.add_argument("-R", "--repeat",    help="index of the repeating. (for\
                         the cases where you need to run the same experiment \
                         multiple times)", type=int)
-    parser.add_argument("-S", "--seed",      help="Seed for random processes. \
+    parser.add_argument("-S", "--seed", help="Seed for random processes. \
                         If not provided seed will be selected randomly.", type=int)
-    parser.add_argument("-ST", "--star",     help="DStar\'s Star \
+    parser.add_argument("-ST", "--star", help="DStar\'s Star \
                         hyperparameter. Has an effect when selected approach is\
                         DStar", type=int)
     parser.add_argument("-LOG", "--logfile", help="path to log file")
@@ -71,6 +74,7 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
     model_name     = args['model']
+    dataset        = args['dataset'] if not args['dataset'] == None else 'mnist'
     selected_class = args['class'] if not args['class'] == None else 0
     step_size      = args['step_size'] if not args['step_size'] == None else 1
     distance       = args['distance'] if not args['distance'] ==None else 0.1
@@ -82,8 +86,12 @@ if __name__ == "__main__":
     logfile_name   = args['logfile'] if not args['logfile'] == None else 'result.log'
 
     ####################
-    # 0) Load MNIST data
-    X_train, Y_train, X_test, Y_test = load_data()
+    # 0) Load MNIST or CIFAR10 data
+    if dataset == 'mnist':
+        X_train, Y_train, X_test, Y_test = load_MNIST()
+    else:
+        X_train, Y_train, X_test, Y_test = load_CIFAR()
+
 
     X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train,
                                                       test_size=1/6.0,
@@ -104,6 +112,7 @@ if __name__ == "__main__":
                                             selected_class, step_size,
                                             approach, susp_num, repeat)
 
+    #Fault localization is done per class.
     X_val, Y_val = filter_val_set(selected_class, X_val, Y_val)
 
 
@@ -115,8 +124,10 @@ if __name__ == "__main__":
         correct_classifications, misclassifications = load_classifications(filename, group_index)
         layer_outs = load_layer_outs(filename, group_index)
     except:
-        correct_classifications, misclassifications, layer_outs, predictions = test_model(model, X_val, Y_val)
-        save_classifications(correct_classifications, misclassifications, filename, group_index)
+        correct_classifications, misclassifications, layer_outs, predictions =\
+                test_model(model, X_val, Y_val)
+        save_classifications(correct_classifications, misclassifications,
+                             filename, group_index)
         save_layer_outs(layer_outs, filename, group_index)
 
 
@@ -133,61 +144,61 @@ if __name__ == "__main__":
     filename = experiment_path + '/' + model_name + '_C' + str(selected_class) + '_' +\
     approach +  '_SN' +  str(susp_num)
 
-    if args['approach'] == 'tarantula':
+    if approach == 'tarantula':
         try:
-            suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
+            suspicious_neuron_idx = load_suspicious_neurons(filename, group_index)
         except:
             suspicious_neuron_idx = tarantula_analysis(trainable_layers, scores,
                                                  num_cf, num_uf, num_cs, num_us,
                                                  susp_num)
 
-            save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
+            save_suspicious_neurons(suspicious_neuron_idx, filename, group_index)
 
-    elif args['approach'] == 'ochiai':
+    elif approach == 'ochiai':
         try:
-            suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
+            suspicious_neuron_idx = load_suspicious_neurons(filename, group_index)
         except:
             suspicious_neuron_idx = ochiai_analysis(trainable_layers, scores,
                                                  num_cf, num_uf, num_cs, num_us,
                                                  susp_num)
 
-            save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
+            save_suspicious_neurons(suspicious_neuron_idx, filename, group_index)
 
-    elif args['approach'] == 'dstar':
+    elif approach == 'dstar':
         try:
-            suspicious_neuron_idx = load_dominant_neurons(filename, group_index)
+            suspicious_neuron_idx = load_suspicious_neurons(filename, group_index)
         except:
             suspicious_neuron_idx = dstar_analysis(trainable_layers, scores,
                                                  num_cf, num_uf, num_cs, num_us,
                                                  susp_num, star)
 
-            save_dominant_neurons(suspicious_neuron_idx, filename, group_index)
+            save_suspicious_neurons(suspicious_neuron_idx, filename, group_index)
 
-    elif args['approach'] == 'random':
+    elif approach == 'random':
         # Random fault localization has to be run after running Tarantula,
         # Ochiai and DStar with the same parameters.
 
         filename = experiment_path + '/' + model_name + '_C' + str(selected_class) \
         + '_tarantula_' + 'SN' + str(susp_num)
 
-        suspicious_neuron_idx_tarantula = load_dominant_neurons(filename, group_index)
+        suspicious_neuron_idx_tarantula = load_suspicious_neurons(filename, group_index)
 
         filename = experiment_path + '/' + model_name + '_C' + str(selected_class) \
         + '_ochiai_' + 'SN' + str(susp_num)
 
-        suspicious_neuron_idx_ochiai = load_dominant_neurons(filename, group_index)
+        suspicious_neuron_idx_ochiai = load_suspicious_neurons(filename, group_index)
 
         filename = experiment_path + '/' + model_name + '_C' + str(selected_class) \
         + '_dstar_' + 'SN' + str(susp_num)
 
-        suspicious_neuron_idx_dstar = load_dominant_neurons(filename, group_index)
+        suspicious_neuron_idx_dstar = load_suspicious_neurons(filename, group_index)
 
         forbiddens = suspicious_neuron_idx_ochiai + suspicious_neuron_idx_tarantula  + \
         suspicious_neuron_idx_dstar
 
         forbiddens = [list(forb) for forb in forbiddens]
 
-        available_layers = list(set([elem[0] for elem in suspicious_neuron_idx_tarantula]))
+        available_layers = list(([elem[0] for elem in suspicious_neuron_idx_tarantula]))
         available_layers += list(set([elem[0] for elem in suspicious_neuron_idx_ochiai]))
         available_layers += list(set([elem[0] for elem in suspicious_neuron_idx_dstar]))
 
@@ -226,9 +237,9 @@ if __name__ == "__main__":
     perturbed_xs = perturbed_xs + x_perturbed
     perturbed_ys = perturbed_ys + y_perturbed
 
-
     # reshape them into the expected format
-    perturbed_xs = np.asarray(perturbed_xs).reshape(np.asarray(perturbed_xs).shape[0], 1, 28, 28)
+    perturbed_xs = np.asarray(perturbed_xs).reshape(np.asarray(perturbed_xs).shape[0],
+                                     *X_val[0].shape)
     perturbed_ys = np.asarray(perturbed_ys).reshape(np.asarray(perturbed_ys).shape[0], 10)
 
     #save perturtbed inputs

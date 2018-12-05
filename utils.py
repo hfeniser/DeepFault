@@ -14,24 +14,17 @@ import traceback
 import math
 
 
-def load_CIFAR():
+def load_CIFAR(one_hot=True):
     (X_train, y_train), (X_test, y_test) = cifar10.load_data()
 
-    y_train = keras.utils.to_categorical(y_train, num_classes=10)
-    y_test = keras.utils.to_categorical(y_test, num_classes=10)
+    if one_hot:
+        y_train = np_utils.to_categorical(y_train, num_classes=10)
+        y_test  = np_utils.to_categorical(y_test, num_classes=10)
 
-    return (X_train, y_train), (X_test, y_test)
+    return X_train, y_train, X_test, y_test
 
-def load_MNIST():
-    # path = "/scratch/sg778/DeepEntrust/tutorial/datasets/mnist.npz"
-    path = "datasets/mnist.npz"
-    f = np.load(path)
-    x_train, y_train = f['x_train'], f['y_train']
-    x_test, y_test = f['x_test'], f['y_test']
-    f.close()
-    return (x_train, y_train), (x_test, y_test)
 
-def load_data(one_hot=True):
+def load_MNIST(one_hot=True):
     """
     Load MNIST data
     :param one_hot:
@@ -39,7 +32,6 @@ def load_data(one_hot=True):
     """
     #Load data
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
-    #(X_train, y_train), (X_test, y_test) = load_MNIST()
 
     #Preprocess dataset
     #Normalization and reshaping of input.
@@ -53,10 +45,10 @@ def load_data(one_hot=True):
 
     if one_hot:
         #For output, it is important to change number to one-hot vector.
-        Y_train = np_utils.to_categorical(y_train, num_classes=10)
-        Y_test = np_utils.to_categorical(y_test, num_classes=10)
+        y_train = np_utils.to_categorical(y_train, num_classes=10)
+        y_test  = np_utils.to_categorical(y_test, num_classes=10)
 
-    return X_train, Y_train, X_test, Y_test
+    return X_train, y_train, X_test, y_test
 
 
 def load_model(model_name):
@@ -279,26 +271,26 @@ def load_layer_outs(filename, group_index):
         return layer_outs
 
 
-def save_dominant_neurons(dominant_neurons, filename, group_index):
-    filename = filename + '_dominant_neurons.h5'
+def save_suspicious_neurons(suspicious_neurons, filename, group_index):
+    filename = filename + '_suspicious_neurons.h5'
     with h5py.File(filename, 'a') as hf:
         group = hf.create_group('group'+str(group_index))
-        for i in range(len(dominant_neurons)):
-            group.create_dataset("dominant_neurons"+str(i), data=dominant_neurons[i])
+        for i in range(len(suspicious_neurons)):
+            group.create_dataset("suspicious_neurons"+str(i), data=suspicious_neurons[i])
 
-    print("Dominant neurons saved in ", filename)
+    print("Suspicious neurons saved in ", filename)
     return
 
 
-def load_dominant_neurons(filename, group_index):
-    filename = filename + '_dominant_neurons.h5'
+def load_suspicious_neurons(filename, group_index):
+    filename = filename + '_suspicious_neurons.h5'
     try:
         with h5py.File(filename, 'r') as hf:
             group = hf.get('group' + str(group_index))
             i = 0
-            dominant_neurons = []
+            suspicious_neurons = []
             while True:
-                dominant_neurons.append(group.get('dominant_neurons' + str(i)).value)
+                suspicious_neurons.append(group.get('suspicious_neurons' + str(i)).value)
                 i += 1
 
     except (IOError) as error:
@@ -308,8 +300,8 @@ def load_dominant_neurons(filename, group_index):
         # because we don't know the exact dimensions (number of layers of our network)
         # we leave it to iterate until it throws an attribute error, and then return
         # layer outs to the caller function
-        print("Dominant neurons  loaded from ", filename)
-        return dominant_neurons
+        print("Suspicious neurons  loaded from ", filename)
+        return suspicious_neurons
 
 
 def save_original_inputs(original_inputs, filename, group_index):

@@ -85,15 +85,15 @@ a1_test = np.random.multivariate_normal([1,1], cov, 100)
 a2_test = np.random.multivariate_normal([1,9], cov, 100)
 b1_test = np.random.multivariate_normal([1,5], cov, 100)
 
-class_a = np.array([[1,0]])
-a1_y = np.repeat(class_a, 100, axis=0)
+class_a = np.array([[0,1]])
+y = np.repeat(class_a, 100, axis=0)
 
-correct_classifications, misclassifications, b1_layer_outs, predictions = \
-test_model(model, b1_test, a1_y)
+correct_classifications, misclassifications, layer_outs, predictions = \
+test_model(model, a2_test, y)
 
-hout = b1_layer_outs[trainable_layers[1]][0]
+hout = layer_outs[trainable_layers[-1]][0]
 print(np.mean(hout[correct_classifications], axis=0))
-print(np.mean(hout[misclassifications], axis=0))
+#print(np.mean(hout[misclassifications], axis=0))
 
 exit()
 
