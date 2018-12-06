@@ -13,12 +13,13 @@ neighbourings regions.
 
 '''
 
-def tarantula_analysis(available_layers, scores, num_cf, num_uf, num_cs, num_us, suspicious_num):
+def tarantula_analysis(trainable_layers, scores, num_cf, num_uf, num_cs, num_us, suspicious_num):
     '''
     More information on Tarantula fault localization technique can be found in
     [1]
     '''
-    suspicious_neuron_idx = [[] for i in range(1, len(available_layers))]
+    suspicious_neuron_idx = [[] for i in range(1, len(trainable_layers))] 
+
 
     for i in range(len(scores)):
         for j in range(len(scores[i])):
@@ -26,7 +27,6 @@ def tarantula_analysis(available_layers, scores, num_cf, num_uf, num_cs, num_us,
             if np.isnan(score):
                 score = 0
             scores[i][j] = score
-
 
     flat_scores = [float(item) for sublist in scores for item in sublist if not
                math.isnan(float(item))]

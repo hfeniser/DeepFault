@@ -113,7 +113,7 @@ if __name__ == "__main__":
                                             approach, susp_num, repeat)
 
     #Fault localization is done per class.
-    X_val, Y_val = filter_val_set(selected_class, X_val, Y_val)
+    X_val, Y_val = filter_val_set(selected_class, X_test, Y_test)
 
 
     ####################

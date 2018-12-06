@@ -1,5 +1,5 @@
 
-from utils import get_layer_outs, load_model, load_data
+from utils import get_layer_outs, load_model, load_MNIST
 from utils import save_layer_outs, save_classifications
 from utils import load_layer_outs, load_classifications
 from utils import filter_val_set, get_trainable_layers
@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     selected_class = args["class"]
 
-    X_train, Y_train, X_test, Y_test = load_data()
+    X_train, Y_train, X_test, Y_test = load_MNIST()
 
     X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train,
                                                           test_size=1/6.0,

@@ -366,10 +366,12 @@ def construct_spectrum_matrices(model, trainable_layers,
 
     for tl in trainable_layers:
         layer_idx = trainable_layers.index(tl)
+        all_neuron_idx = range(model.layers[tl].output_shape[1])
         test_idx = 0
         for l in layer_outs[tl][0]:
             covered_idx   = list(np.where(l  > 0)[0])
-            uncovered_idx = list(np.where(l <= 0)[0])
+            uncovered_idx = list(set(all_neuron_idx) - set(covered_idx))
+            #uncovered_idx = list(np.where(l <= 0)[0])
             if test_idx  in correct_classifications:
                 for cov_idx in covered_idx:
                     num_cs[layer_idx][cov_idx] += 1
@@ -382,7 +384,7 @@ def construct_spectrum_matrices(model, trainable_layers,
                     num_uf[layer_idx][uncov_idx] += 1
             test_idx += 1
 
-    return scores, num_cf, num_uf, num_cs, num_cf
+    return scores, num_cf, num_uf, num_cs, num_us
 
 def cone_of_influence_analysis(model, dominants):
 
