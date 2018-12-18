@@ -2,6 +2,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Flatten, LeakyReLU, Activation
 from utils import get_python_version
 from os import path
+from sklearn.model_selection import train_test_split
 
 python_version = get_python_version()
 

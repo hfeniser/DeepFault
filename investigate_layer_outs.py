@@ -4,7 +4,8 @@ from utils import save_layer_outs, save_classifications
 from utils import load_layer_outs, load_classifications
 from utils import filter_val_set, get_trainable_layers
 from sklearn.model_selection import train_test_split
-from sklearn.cluster import KMeans, SpectralClustering, AgglomerativeClustering
+from sklearn.cluster import KMeans, SpectralClustering, \
+        AgglomerativeClustering, DBSCAN
 from scipy import stats
 from imblearn.over_sampling import SMOTE
 from test_nn import test_model
@@ -14,6 +15,7 @@ import random
 import argparse
 
 seed = random.randint(0,10)
+seed = 5
 
 experiment_path = 'experiment_results'
 model_path  = 'neural_networks'
@@ -66,6 +68,24 @@ if __name__ == "__main__":
 
     trainable_layers = get_trainable_layers(model)
 
+    #######################
+    ### OUTPUT ANALYSIS ###
+    #######################
+    outs = layer_outs[-1][0][correct_classifications] #Output layer
+    clustering = DBSCAN(eps=0.2, min_samples=10).fit(outs)
+    ind = np.where(clustering.labels_ == -1)
+    indtemp = np.where(clustering.labels_ == 0)
+
+    print(outs[ind])
+    print(outs[indtemp][:100])
+
+    unique, counts = np.unique(clustering.labels_, return_counts = True)
+
+    print(dict(zip(unique,counts)))
+
+    exit()
+
+
     ###############################
     ### LAYER-BY-LAYER ANALYSIS ###
     ###############################
@@ -75,8 +95,6 @@ if __name__ == "__main__":
         lm = np.mean(louts[misclassifications], axis=0)
         print("DISTANCE: " + str(np.linalg.norm(lc-lm)))
 
-
-    exit()
 
     ############################
     ### CLUSTERING ANALYSSIS ###
