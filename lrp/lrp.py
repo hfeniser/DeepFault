@@ -36,7 +36,7 @@ def calculate_hidden_relevances(relevances_, model, layer_outs, trainable_layers
                                 selected_class, alpha=1, beta=0):
 
     relevant_neurons = []
-    for test_idx in correct_classifications[:20]:
+    for test_idx in correct_classifications[:10]:
         weights = model.layers[-1].get_weights()
         print(test_idx)
 
@@ -56,20 +56,30 @@ def calculate_hidden_relevances(relevances_, model, layer_outs, trainable_layers
         relevances_.append(np.zeros(model.layers[-1].output_shape[1]))
 
         # relevances_[-1] = np.zeros(model.layers[-1].output_shape[1])
-        # relevances_[-1][selected_class] = final_relevance
+        relevances_[-1][selected_class] = final_relevance
 
         for i in range(2,len(relevances_))[::-1]:
             weights = model.layers[i].get_weights()[0]
             for j in range(model.layers[i].output_shape[1]):
-                sum_rel = 0
+                sum_rel_pos = 0
+                sum_rel_neg = 0
                 for k in range(model.layers[i-1].output_shape[1]):
                     if weights[k][j] > 0:
-                        sum_rel += layer_outs[i-1][0][test_idx][k] * weights[k][j]
+                        sum_rel_pos += layer_outs[i-1][0][test_idx][k] * weights[k][j]
+                    else:
+                        sum_rel_neg += layer_outs[i-1][0][test_idx][k] * weights[k][j]
+
+
                 for k in range(model.layers[i-1].output_shape[1]):
                     if weights[k][j] > 0:
-                        relevances_[i-1][k] += (float(layer_outs[i-1][0][test_idx][k] * \
-                                                    weights[k][j]) / sum_rel) * \
+                        relevances_[i-1][k] += alpha * (float(layer_outs[i-1][0][test_idx][k] * \
+                                                    weights[k][j]) / sum_rel_pos) * \
                                                     relevances_[i][j]
+                    else:
+                        relevances_[i-1][k] -= beta * (float(layer_outs[i-1][0][test_idx][k] * \
+                                                    weights[k][j]) / sum_rel_neg) * \
+                                                    relevances_[i][j]
+
 
         lower_bound = 0
         upper_bound = 1
@@ -85,16 +95,19 @@ def calculate_hidden_relevances(relevances_, model, layer_outs, trainable_layers
 
             for k in range(model.layers[0].output_shape[1]):
                 if weights[k][j] > 0:
-                    relevances_[0][k] += float((layer_outs[0][0][test_idx][k] * \
+                    relevances_[0][k] += (float((layer_outs[0][0][test_idx][k] * \
                                                weights[k][j] - lower_bound * \
-                                               weights[k][j])) / sum_rel
+                                               weights[k][j])) / sum_rel) * \
+                                            relevances_[1][j]
                 else:
                     relevances_[0][k] += (float((layer_outs[0][0][test_idx][k] * \
                                                weights[k][j] - upper_bound * \
                                                weights[k][j])) / sum_rel) * \
-                                            relevances_[1][j]
+                                           relevances_[1][j]
 
         relevant_neurons.append(relevances_[1].argsort()[-5:])
+        plt.imshow(relevances_[0].reshape((28,28)), cmap='hot', interpolation='nearest')
+        plt.savefig('figures/heat_' + str(test_idx) + '.png')
     return relevant_neurons
 
 
@@ -130,18 +143,13 @@ X_val, Y_val = filter_val_set(selected_class, X_test, y_test)
 correct_classifications, misclassifications, layer_outs, _ =\
                 test_model(model, X_val, Y_val)
 
-# final_relevances = calculate_final_relevances(trainable_layers,
-#                                              selected_class, X_val, model,
-#                                              correct_classifications,
-#                                              layer_outs)
 
 relevant_neurons = calculate_hidden_relevances(relevances_, model, layer_outs,
                                           trainable_layers,
                                           correct_classifications,
-                                          selected_class)
+                                          selected_class, alpha=4, beta=3)
 
-#plt.imshow(relevances_[0].reshape((28,28)), cmap='hot', interpolation='nearest')
-#plt.savefig('heat.png')
+
 
 print(relevant_neurons)
 
