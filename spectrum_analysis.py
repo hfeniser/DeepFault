@@ -18,7 +18,8 @@ def tarantula_analysis(trainable_layers, scores, num_cf, num_uf, num_cs, num_us,
     More information on Tarantula fault localization technique can be found in
     [1]
     '''
-    suspicious_neuron_idx = [[] for i in range(1, len(trainable_layers))] 
+    suspicious_neuron_idx = [[] for i in range(1, len(trainable_layers))]
+    available_layers = None
 
 
     for i in range(len(scores)):
