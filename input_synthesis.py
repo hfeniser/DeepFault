@@ -41,4 +41,7 @@ def synthesize(model, zipped_data, suspicious_indices, correct_classifications, 
         perturbed_set_y.append(y)
         original_set_x.append(x)
 
+        if len(perturbed_set_x) % 5 == 0:
+            print(("Input index:", len(perturbed_set_x)))
+
     return perturbed_set_x, perturbed_set_y, original_set_x
