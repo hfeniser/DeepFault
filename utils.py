@@ -24,7 +24,7 @@ def load_CIFAR(one_hot=True):
     return X_train, y_train, X_test, y_test
 
 
-def load_MNIST(one_hot=True):
+def load_MNIST(one_hot=True, channel_first=True):
     """
     Load MNIST data
     :param one_hot:
@@ -35,8 +35,13 @@ def load_MNIST(one_hot=True):
 
     #Preprocess dataset
     #Normalization and reshaping of input.
-    X_train = X_train.reshape(X_train.shape[0], 1, 28, 28)
-    X_test = X_test.reshape(X_test.shape[0], 1, 28, 28)
+    if channel_first:
+        X_train = X_train.reshape(X_train.shape[0], 1, 28, 28)
+        X_test = X_test.reshape(X_test.shape[0], 1, 28, 28)
+    else:
+        X_train = X_train.reshape(X_train.shape[0], 28, 28, 1)
+        X_test = X_test.reshape(X_test.shape[0], 28, 28, 1)
+
 
     X_train = X_train.astype('float32')
     X_test = X_test.astype('float32')
@@ -202,7 +207,7 @@ def create_experiment_dir(experiment_path, model_name,
     # doesnt exist
     experiment_name = model_name + '_C' + str(selected_class) + '_SS' + \
     str(step_size) + '_' + approach + '_SN' + str(susp_num) + '_R' + str(repeat)
-    
+
 
     if not path.exists(experiment_path):
         makedirs(experiment_path)
@@ -334,7 +339,7 @@ def normalize(x):
 
 
 def get_trainable_layers(model):
-    
+
     trainable_layers = []
     for layer in model.layers:
         try:
@@ -350,25 +355,38 @@ def get_trainable_layers(model):
 
 def construct_spectrum_matrices(model, trainable_layers,
                                 correct_classifications, misclassifications,
-                                layer_outs):
+                                layer_outs, activation_threshold=0):
     scores = []
     num_cf = []
     num_uf = []
     num_cs = []
     num_us = []
     for tl in trainable_layers:
-        num_cf.append(np.zeros(model.layers[tl].output_shape[1]))  # covered (activated) and failed
-        num_uf.append(np.zeros(model.layers[tl].output_shape[1]))  # uncovered (not activated) and failed
-        num_cs.append(np.zeros(model.layers[tl].output_shape[1]))  # covered and succeeded
-        num_us.append(np.zeros(model.layers[tl].output_shape[1]))  # uncovered and succeeded
-        scores.append(np.zeros(model.layers[tl].output_shape[1]))
+        print(model.layers[tl].output_shape)
+        num_cf.append(np.zeros(model.layers[tl].output_shape[-1]))  # covered (activated) and failed
+        num_uf.append(np.zeros(model.layers[tl].output_shape[-1]))  # uncovered (not activated) and failed
+        num_cs.append(np.zeros(model.layers[tl].output_shape[-1]))  # covered and succeeded
+        num_us.append(np.zeros(model.layers[tl].output_shape[-1]))  # uncovered and succeeded
+        scores.append(np.zeros(model.layers[tl].output_shape[-1]))
 
 
     for tl in trainable_layers:
         layer_idx = trainable_layers.index(tl)
-        all_neuron_idx = range(model.layers[tl].output_shape[1])
+        all_neuron_idx = range(model.layers[tl].output_shape[-1])
         test_idx = 0
         for l in layer_outs[tl][0]:
+            for neuron_idx in range(model.layers[tl].output_shape[-1]):
+                if test_idx in correct_classifications and np.mean(l[...,neuron_idx]) > activation_threshold:
+                    num_cs[layer_idx][neuron_idx] += 1
+                elif test_idx in correct_classifications and np.mean(l[...,neuron_idx]) < activation_threshold:
+                    num_us[layer_idx][neuron_idx] += 1
+                elif test_idx in misclassifications and np.mean(l[...,neuron_idx]) > activation_threshold:
+                    num_cf[layer_idx][neuron_idx] += 1
+                else:
+                    num_uf[layer_idx][neuron_idx] += 1
+
+            test_idx += 1
+            '''
             covered_idx   = list(np.where(l  > 0)[0])
             uncovered_idx = list(set(all_neuron_idx) - set(covered_idx))
             #uncovered_idx = list(np.where(l <= 0)[0])
@@ -383,6 +401,7 @@ def construct_spectrum_matrices(model, trainable_layers,
                 for uncov_idx in uncovered_idx:
                     num_uf[layer_idx][uncov_idx] += 1
             test_idx += 1
+            '''
 
     return scores, num_cf, num_uf, num_cs, num_us
 
