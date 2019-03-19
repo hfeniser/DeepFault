@@ -88,7 +88,7 @@ if __name__ == "__main__":
     ####################
     # 0) Load MNIST or CIFAR10 data
     if dataset == 'mnist':
-        X_train, Y_train, X_test, Y_test = load_MNIST()
+        X_train, Y_train, X_test, Y_test = load_MNIST(one_hot=True, channel_first=False)
     else:
         X_train, Y_train, X_test, Y_test = load_CIFAR()
 
@@ -132,7 +132,7 @@ if __name__ == "__main__":
 
 
     ####################
-    # 3) Receive the correct classifications  & misclassifications and identify 
+    # 3) Receive the correct classifications  & misclassifications and identify
     # the suspicious neurons per layer
     trainable_layers = get_trainable_layers(model)
     scores, num_cf, num_uf, num_cs, num_us = construct_spectrum_matrices(model,
@@ -140,6 +140,8 @@ if __name__ == "__main__":
                                                                         correct_classifications,
                                                                         misclassifications,
                                                                         layer_outs)
+
+
 
     filename = experiment_path + '/' + model_name + '_C' + str(selected_class) + '_' +\
     approach +  '_SN' +  str(susp_num)
@@ -215,8 +217,8 @@ if __name__ == "__main__":
 
     ####################
     # 4) Run Suspiciousness-Guided Input Synthesis Algorithm
-    # Receive the set of suspicious neurons for each layer from Step 3 # and 
-    # will produce new inputs based on the correct classifications (from the 
+    # Receive the set of suspicious neurons for each layer from Step 3 # and
+    # will produce new inputs based on the correct classifications (from the
     # testing set) that exercise the suspicious neurons
 
     perturbed_xs = []
@@ -234,6 +236,7 @@ if __name__ == "__main__":
                                            distance)
     syn_end = datetime.datetime.now()
 
+    '''
     perturbed_xs = perturbed_xs + x_perturbed
     perturbed_ys = perturbed_ys + y_perturbed
 
@@ -241,16 +244,17 @@ if __name__ == "__main__":
     perturbed_xs = np.asarray(perturbed_xs).reshape(np.asarray(perturbed_xs).shape[0],
                                      *X_val[0].shape)
     perturbed_ys = np.asarray(perturbed_ys).reshape(np.asarray(perturbed_ys).shape[0], 10)
+    '''
 
     #save perturtbed inputs
     filename = path.join(experiment_path, experiment_name)
-    save_perturbed_test_groups(perturbed_xs, perturbed_ys, filename, group_index)
+    save_perturbed_test_groups(x_perturbed, y_perturbed, filename, group_index)
     save_original_inputs(x_original, filename, group_index)
 
 
     ####################
     # 5) Test if the mutated inputs are adversarial
-    score = model.evaluate(perturbed_xs, perturbed_ys, verbose=0)
+    score = model.evaluate([x_perturbed], [y_perturbed], verbose=0)
     logfile.write('Model: ' + model_name + ', Class: ' + str(selected_class) +
                   ', Approach: ' + approach + ', Distance: ' +
                   str(distance) + ', Score: ' + str(score) + '\n')

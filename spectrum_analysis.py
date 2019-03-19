@@ -19,8 +19,6 @@ def tarantula_analysis(trainable_layers, scores, num_cf, num_uf, num_cs, num_us,
     [1]
     '''
     suspicious_neuron_idx = [[] for i in range(1, len(trainable_layers))]
-    available_layers = None
-
 
     for i in range(len(scores)):
         for j in range(len(scores[i])):
@@ -38,10 +36,10 @@ def tarantula_analysis(trainable_layers, scores, num_cf, num_uf, num_cs, num_us,
     for i in range(len(scores)):
         for j in range(len(scores[i])):
             if scores[i][j] in relevant_vals:
-                if available_layers == None:
+                if trainable_layers == None:
                     suspicious_neuron_idx.append((i,j))
                 else:
-                    suspicious_neuron_idx.append((available_layers[i],j))
+                    suspicious_neuron_idx.append((trainable_layers[i],j))
             if len(suspicious_neuron_idx) == suspicious_num:
                 break
 
