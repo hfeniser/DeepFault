@@ -2,3 +2,6 @@
 *.pyc
 experiment/*
 experiments_paper/mnist*
+adv_inputs/*
+susp_adv_inputs/*
+.ipynb_checkpoints/*
