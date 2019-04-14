@@ -435,10 +435,12 @@ def construct_spectrum_matrices(model, trainable_layers,
 
     for tl in trainable_layers:
         layer_idx = trainable_layers.index(tl)
-        all_neuron_idx = range(model.layers[tl].output_shape[-1])
+
         test_idx = 0
         for l in layer_outs[tl][0]:
-            for neuron_idx in range(model.layers[tl].output_shape[-1]):
+            all_neuron_idx = range(l.shape[-1])
+
+            for neuron_idx in all_neuron_idx:
                 if test_idx in correct_classifications and np.mean(l[...,neuron_idx]) > activation_threshold:
                     num_cs[layer_idx][neuron_idx] += 1
                 elif test_idx in correct_classifications and np.mean(l[...,neuron_idx]) < activation_threshold:
