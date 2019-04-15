@@ -76,19 +76,17 @@ def get_layer_outs_old(model, class_specific_test_set):
     inp = model.input                                           # input placeholder
     outputs = [layer.output for layer in model.layers]          # all layer outputs
     functors = [K.function([inp]+ [K.learning_phase()], [out]) for out in outputs]  # evaluation functions
-    # Testing
     layer_outs = [func([class_specific_test_set, 1.]) for func in functors]
 
     return layer_outs
 
 
-# https://stackoverflow.com/questions/41711190/keras-how-to-get-the-output-of-each-layer
 def get_layer_outs(model, test_input):
     inp = model.input  # input placeholder
     outputs = [layer.output for layer in model.layers]  # all layer outputs
     functors = [K.function([inp], [out]) for out in outputs]  # evaluation functions
-
     layer_outs = [func([test_input]) for func in functors]
+
     return layer_outs
 
 
