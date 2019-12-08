@@ -1,5 +1,13 @@
 # DeepFault: Fault Localization for Deep Neural Networks
 
+This code is very much "research code": it is provided as a reference of exact details of the experiments and attacks.
+If you encounter any problem do not hesitate to reach me.
+
+### Update
+Scripts related to MNIST dataset are tested with the following versions:
+Keras 2.3.1
+Tensorflow 1.13.2
+
 See the FASE'2019 paper [DeepFault: Fault Localization for Deep Neural Networks](https://arxiv.org/abs/1902.05974) for more details.
 
 ## Abstract
@@ -15,4 +23,4 @@ DeepFault is distributed in the hope that it will be useful, but WITHOUT ANY WAR
 
 You should have received a copy of the GNU General Public License along with DeepFault. If not, see https://www.gnu.org/licenses/.
 
-mail: hasan.eniser@boun.edu.tr, simos.gerasimou@york.ac.uk
+mail: hfeniser@mpi-sws.org, simos.gerasimou@york.ac.uk

@@ -1,19 +1,15 @@
 from keras.models import Sequential
 from keras.layers import Dense, Flatten, LeakyReLU, Activation
-from utils import get_python_version
-from os import path
+from utils import get_python_version, load_MNIST
 from sklearn.model_selection import train_test_split
 
 python_version = get_python_version()
-
+seed = 123
 
 def __save_trained_model(model, num_hidden, num_neuron,
                          model_prefix='mnist_test_model'):
 
     directory = "neural_networks/"
-
-    if not path.exists(directory):
-        makedirs(directory)
 
     model_name = model_prefix + '_' + str(num_hidden) + '_' + str(num_neuron) 
     model_filename = directory + model_name + ".json"
@@ -41,16 +37,8 @@ def train_model():
     :return:
     """
 
-    if python_version == 2 :
-        if num_hidden is None:
-            num_hidden = int(raw_input('Enter number of hidden layers: '))
-        if num_neuron is None:
-            num_neuron = int(raw_input('Enter number of neurons in each hidden layer: '))
-    else:
-        if num_hidden is None:
-            num_hidden = int(input('Enter number of hidden layers: '))
-        if num_neuron is None:
-            num_neuron = int(input('Enter number of neurons in each hidden layer: '))
+    num_hidden = int(input('Enter number of hidden layers: '))
+    num_neuron = int(input('Enter number of neurons in each hidden layer: '))
 
     print('Activations are LeakyReLU. Optimizer is ADAM. Batch sizei is 32.' + \
           'Fully connected network without dropout.')
@@ -78,7 +66,7 @@ def train_model():
     # Print information about the model
     print(model.summary())
 
-    X_train, Y_train, X_test, Y_test = load_data()
+    X_train, Y_train, X_test, Y_test = load_MNIST()
     X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train,
                                                       test_size=1/6.0,
                                                       random_state=seed)
