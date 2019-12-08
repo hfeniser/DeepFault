@@ -3,6 +3,9 @@
 This code is very much "research code": it is provided as a reference of exact details of the experiments and attacks.
 If you encounter any problem do not hesitate to reach me.
 
+Results are logged in "result.log" file by default. One should expect a lower score with _tarantula_, _ochiai_ or _dstar_ when compared to _random_.
+_random_ should be run only after _tarantula_, _ochiai_ and _dstar_ suspicious neurons are determined -saved- as random suspicious neurons are selected from the rest of the neurons.
+
 ### Update
 Scripts related to MNIST dataset are tested with the following versions:
 Keras 2.3.1
