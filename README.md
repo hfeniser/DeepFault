@@ -1,6 +1,6 @@
 # DeepFault: Fault Localization for Deep Neural Networks
 
-This code is very much "research code": it is provided as a reference of exact details of the experiments and attacks.
+This code is very much "research code": it is provided as a reference to the approach prsented in the paper.
 If you encounter any problem do not hesitate to reach me.
 
 Results are logged in "result.log" file by default. One should expect a lower score with _tarantula_, _ochiai_ or _dstar_ when compared to _random_.
