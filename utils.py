@@ -1,5 +1,5 @@
 
-from keras.datasets import mnist, cifar
+from keras.datasets import mnist, cifar10
 from keras.utils import np_utils
 from keras.models import model_from_json
 from keras import backend as K
