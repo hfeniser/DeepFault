@@ -17,6 +17,26 @@ See the FASE'2019 paper [DeepFault: Fault Localization for Deep Neural Networks]
 Deep Neural Networks (DNNs) are increasingly deployed in safety-critical applications including autonomous vehicles and medical diagnostics. To reduce the residual risk for unexpected DNN behaviour and provide evidence for their trustworthy operation, DNNs should be thoroughly tested. The DeepFault whitebox DNN testing approach presented in our paper addresses this challenge by employing suspiciousness measures inspired by fault localization to establish the hit spectrum of neurons and identify suspicious neurons whose weights have not been calibrated correctly and thus are considered responsible for inadequate DNN performance. DeepFault also uses a suspiciousness-guided algorithm to synthesize new inputs, from correctly classified inputs, that increase the activation values of suspicious neurons. Our empirical evaluation on several DNN instances trained on MNIST and CIFAR-10 datasets shows that DeepFault is effective in identifying suspicious neurons. Also, the inputs synthesized by DeepFault closely resemble the original inputs, exercise the identified suspicious neurons and are highly adversarial.
 
 
+## Running DeepFault
+
+#### Command Line Settings
+    model_name     =>  Name of the -Keras- model file. Note that architecture file (i.e. json) and weights file should be saved separately. If you already trained and saved your model into one file you might want to change the corresponding "load_model" function accordingly.
+    dataset        =   Name of the dataset to be used. Current implementation supports only 'mnist' and 'cifar'. However, adding another is not difficult.
+    selected_class =   In DeepFault, we find the suspicious neurons for each class separately. This argument is a number between 0 and 9 for mist or cifar.
+    step_size      =   We multiply the gradient values by this parameter for scaling up or down the change while synthesizing a new input.
+    distance       =   The maximum amount of distance (l_inf norm) between the original and the synthesized input.
+    approach       =   The approach for finding the suspicious neurons. Current implementation supports 'tarantula', 'ochiai', 'dstar' and 'random'. Note that random can be selected only after running all others.
+    susp_num       =   Number of neurons considered suspicious.
+    repeat         =   This added to repeat the experiments to reduce the randomness effect. Useless at the moment.
+    seed           =   Seed for the random process. Added for reproducibility.
+    star           =   This corresponds to the "star" parameter of dstar approach.
+    logfile_name   =   Name of the file that the results to be saved.
+    
+#### Example Command
+    python run.py --model path_to_your_mnist_model_file --dataset mnist --selected_class 0 --approach tarantula --suspicious_num 10
+
+
+
 ## Copyright Notice
 DeepFault: Fault Localization for Deep Neural Networks Copyright (C) 2019 Bogazici University
 
