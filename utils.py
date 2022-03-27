@@ -377,7 +377,7 @@ def construct_spectrum_matrices(model, trainable_layers,
             for neuron_idx in range(model.layers[tl].output_shape[-1]):
                 if test_idx in correct_classifications and np.mean(l[...,neuron_idx]) > activation_threshold:
                     num_cs[layer_idx][neuron_idx] += 1
-                elif test_idx in correct_classifications and np.mean(l[...,neuron_idx]) < activation_threshold:
+                elif test_idx in correct_classifications and np.mean(l[...,neuron_idx]) <= activation_threshold:
                     num_us[layer_idx][neuron_idx] += 1
                 elif test_idx in misclassifications and np.mean(l[...,neuron_idx]) > activation_threshold:
                     num_cf[layer_idx][neuron_idx] += 1
